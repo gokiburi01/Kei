@@ -4,7 +4,10 @@ const ctx = canvas.getContext("2d");
 let previousKeypoints = null;
 let hands;
 
-// ===== 体の骨格 =====
+let frameCount = 0;
+let cachedHands = null;
+
+// ===== 体 =====
 const bodyConnections = [
   ['left_shoulder','right_shoulder'],
   ['left_shoulder','left_elbow'],
@@ -20,7 +23,7 @@ const bodyConnections = [
   ['right_knee','right_ankle']
 ];
 
-// ===== 手の骨格 =====
+// ===== 手 =====
 const fingerConnections = [
   [0,1],[1,2],[2,3],[3,4],
   [0,5],[5,6],[6,7],[7,8],
@@ -30,9 +33,8 @@ const fingerConnections = [
 ];
 
 // ===== スムージング =====
-function smoothKeypoints(current, previous, alpha = 0.85) {
+function smoothKeypoints(current, previous, alpha = 0.7) {
   if (!previous) return current;
-
   return current.map((kp, i) => ({
     ...kp,
     x: previous[i].x * alpha + kp.x * (1 - alpha),
@@ -41,12 +43,12 @@ function smoothKeypoints(current, previous, alpha = 0.85) {
   }));
 }
 
-// ===== 体描画 =====
+// ===== 描画 =====
 function drawBody(keypoints) {
   keypoints.forEach(kp => {
     if (kp.score > 0.3) {
       ctx.beginPath();
-      ctx.arc(kp.x, kp.y, 5, 0, Math.PI*2);
+      ctx.arc(kp.x, kp.y, 3, 0, Math.PI*2);
       ctx.fillStyle = "red";
       ctx.fill();
     }
@@ -61,48 +63,52 @@ function drawBody(keypoints) {
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
       ctx.strokeStyle = "lime";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2;
       ctx.stroke();
     }
   });
 }
 
-// ===== 手描画（MediaPipe）=====
-function drawHand(landmarks) {
-  // 点
-  landmarks.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x * canvas.width, p.y * canvas.height, 4, 0, Math.PI*2);
-    ctx.fillStyle = "cyan";
-    ctx.fill();
-  });
+function drawHands(handsData) {
+  if (!handsData) return;
 
-  // 線
-  fingerConnections.forEach(([a,b]) => {
-    const p1 = landmarks[a];
-    const p2 = landmarks[b];
+  handsData.forEach(hand => {
+    const landmarks = hand;
 
-    ctx.beginPath();
-    ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
-    ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
-    ctx.strokeStyle = "yellow";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    landmarks.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x * canvas.width, p.y * canvas.height, 2, 0, Math.PI*2);
+      ctx.fillStyle = "cyan";
+      ctx.fill();
+    });
+
+    fingerConnections.forEach(([a,b]) => {
+      const p1 = landmarks[a];
+      const p2 = landmarks[b];
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+      ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+      ctx.strokeStyle = "yellow";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
   });
 }
 
 // ===== カメラ =====
 async function setupCamera() {
   const video = document.createElement("video");
-  video.autoplay = true;
-  video.playsInline = true;
 
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" }
+    video: {
+      width: 320,
+      height: 240,
+      facingMode: "user"
+    }
   });
 
   video.srcObject = stream;
-
   await new Promise(res => video.onloadedmetadata = res);
   return video;
 }
@@ -111,34 +117,28 @@ async function setupCamera() {
 async function main() {
   const video = await setupCamera();
 
-  // MoveNet
   const detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.MoveNet,
     { modelType: "SinglePose.Lightning" }
   );
 
-  // MediaPipe Hands
   hands = new Hands({
     locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
   });
 
   hands.setOptions({
-    maxNumHands: 2,
-    modelComplexity: 1,
-    minDetectionConfidence: 0.7,
-    minTrackingConfidence: 0.7
+    maxNumHands: 1, // 軽量化
+    modelComplexity: 0 // 軽量化
   });
 
   hands.onResults(results => {
-    if (results.multiHandLandmarks) {
-      results.multiHandLandmarks.forEach(drawHand);
-    }
+    cachedHands = results.multiHandLandmarks;
   });
 
   async function loop() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // 体
+    // ---- 体（毎フレーム）----
     const poses = await detector.estimatePoses(video);
     if (poses.length > 0) {
       let keypoints = poses[0].keypoints;
@@ -147,8 +147,13 @@ async function main() {
       drawBody(keypoints);
     }
 
-    // 手（重要）
-    await hands.send({ image: video });
+    // ---- 手（3フレームに1回だけ）----
+    frameCount++;
+    if (frameCount % 3 === 0) {
+      await hands.send({ image: video });
+    }
+
+    drawHands(cachedHands);
 
     requestAnimationFrame(loop);
   }
