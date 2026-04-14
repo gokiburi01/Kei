@@ -1,21 +1,36 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>Pose Test</title>
+  <meta charset="UTF-8">
+  <title>全身＋指のポーズ検出</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.4.0"></script>
+
+  <!-- MoveNet（全身） -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
+  <!-- HandPose（指） -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+
+  <!-- WebGL backend -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+
   <style>
-    body { margin:0; background:#000; }
-    canvas { display:block; margin:auto; }
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+    }
   </style>
 </head>
 <body>
 
-<canvas id="canvas" width="480" height="360"></canvas>
+<canvas id="canvas" width="640" height="480"></canvas>
 
 <script src="app.js" defer></script>
 
