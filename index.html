@@ -2,29 +2,31 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Pose Detection Stable</title>
+  <title>Hybrid Pose Detection</title>
 
   <!-- TensorFlow.js -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
 
-  <!-- Pose detection model -->
+  <!-- MoveNet (全身) -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
+  <!-- HandPose（手の指） -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
 
   <style>
     body {
       margin: 0;
-      background: #000;
-      overflow: hidden;
+      background: black;
       color: white;
-      font-family: sans-serif;
+      font-size: 20px;
       text-align: center;
+      overflow: hidden;
     }
     #loading {
       position: absolute;
-      top: 45%;
       width: 100%;
-      font-size: 22px;
+      top: 40%;
     }
     canvas {
       display: none;
@@ -32,9 +34,10 @@
     }
   </style>
 </head>
+
 <body>
 
-<div id="loading">🔄 起動中…カメラを許可してください</div>
+<div id="loading">🔄 起動中… カメラを許可してください</div>
 <canvas id="canvas" width="480" height="360"></canvas>
 
 <script src="app.js" defer></script>
