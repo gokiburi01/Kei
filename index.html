@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hand Tracking (Lightweight)</title>
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        #video {
-            position: fixed;
-            right: 10px;
-            bottom: 10px;
-            width: 220px;
-            border: 2px solid white;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>ポーズ＋両手検出（安定版）</title>
+
+  <!-- TensorFlow -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
+
+  <!-- MoveNet -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+  <style>
+    body { margin:0; background:black; overflow:hidden; }
+    canvas { display:block; margin:auto; }
+  </style>
 </head>
 <body>
-    <video id="video" autoplay playsinline muted></video>
-    
-    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm/vision_wasm_internal.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0"></script>
-    
-    <script src="app.js"></script>
+
+<canvas id="canvas" width="480" height="360"></canvas>
+
+<script src="app.js" defer></script>
+
 </body>
 </html>
