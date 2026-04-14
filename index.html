@@ -2,29 +2,22 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>複数人ポーズ検出（体＋両手）</title>
+  <title>複数人ポーズ検出（軽量版）</title>
 
-  <!-- TensorFlow.js -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
-
-  <!-- WebGL backend -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
-
-  <!-- MoveNet（複数人対応） -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
-  <!-- MediaPipe Hands -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
   <style>
-    body { margin: 0; background: #000; overflow: hidden; }
-    canvas { display: block; margin: auto; }
+    body { margin:0; background:black; }
+    canvas { display:block; margin:auto; }
   </style>
 </head>
 <body>
 
-<canvas id="canvas" width="640" height="480"></canvas>
+<canvas id="canvas" width="480" height="360"></canvas>
 
 <script src="app.js" defer></script>
 
