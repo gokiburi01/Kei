@@ -2,12 +2,9 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 let previousKeypoints = null;
-let hands;
+let handModel = null;
 
-let frameCount = 0;
-let cachedHands = null;
-
-// ===== 体 =====
+// ------- MoveNet（体）の接続ライン -------
 const bodyConnections = [
   ['left_shoulder','right_shoulder'],
   ['left_shoulder','left_elbow'],
@@ -23,18 +20,19 @@ const bodyConnections = [
   ['right_knee','right_ankle']
 ];
 
-// ===== 手 =====
+// ------- HandPose（手）の接続ライン 21点 -------
 const fingerConnections = [
-  [0,1],[1,2],[2,3],[3,4],
-  [0,5],[5,6],[6,7],[7,8],
-  [5,9],[9,10],[10,11],[11,12],
-  [9,13],[13,14],[14,15],[15,16],
-  [13,17],[17,18],[18,19],[19,20]
+  [0,1],[1,2],[2,3],[3,4],     // 親指
+  [0,5],[5,6],[6,7],[7,8],     // 人差し指
+  [5,9],[9,10],[10,11],[11,12], // 中指
+  [9,13],[13,14],[14,15],[15,16], // 薬指
+  [13,17],[17,18],[18,19],[19,20] // 小指
 ];
 
-// ===== スムージング =====
-function smoothKeypoints(current, previous, alpha = 0.7) {
+// ------- 揺れ防止（スムージング） -------
+function smoothKeypoints(current, previous, alpha = 0.85) {
   if (!previous) return current;
+
   return current.map((kp, i) => ({
     ...kp,
     x: previous[i].x * alpha + kp.x * (1 - alpha),
@@ -43,18 +41,21 @@ function smoothKeypoints(current, previous, alpha = 0.7) {
   }));
 }
 
-// ===== 描画 =====
-function drawBody(keypoints) {
+// ------- 体の点描画 -------
+function drawBodyKeypoints(keypoints) {
   keypoints.forEach(kp => {
     if (kp.score > 0.3) {
       ctx.beginPath();
-      ctx.arc(kp.x, kp.y, 3, 0, Math.PI*2);
+      ctx.arc(kp.x, kp.y, 5, 0, Math.PI * 2);
       ctx.fillStyle = "red";
       ctx.fill();
     }
   });
+}
 
-  bodyConnections.forEach(([a,b]) => {
+// ------- 体の骨格描画 -------
+function drawBodySkeleton(keypoints) {
+  bodyConnections.forEach(([a, b]) => {
     const p1 = keypoints.find(k => k.name === a);
     const p2 = keypoints.find(k => k.name === b);
 
@@ -63,97 +64,101 @@ function drawBody(keypoints) {
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
       ctx.strokeStyle = "lime";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
       ctx.stroke();
     }
   });
 }
 
-function drawHands(handsData) {
-  if (!handsData) return;
+// ------- 手の指の描画 -------
+function drawHand(hand) {
+  const pts = hand.landmarks;
 
-  handsData.forEach(hand => {
-    const landmarks = hand;
+  // 点
+  pts.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p[0], p[1], 4, 0, Math.PI * 2);
+    ctx.fillStyle = "cyan";
+    ctx.fill();
+  });
 
-    landmarks.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x * canvas.width, p.y * canvas.height, 2, 0, Math.PI*2);
-      ctx.fillStyle = "cyan";
-      ctx.fill();
-    });
+  // ライン
+  fingerConnections.forEach(([a, b]) => {
+    const p1 = pts[a];
+    const p2 = pts[b];
 
-    fingerConnections.forEach(([a,b]) => {
-      const p1 = landmarks[a];
-      const p2 = landmarks[b];
-
-      ctx.beginPath();
-      ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
-      ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
-      ctx.strokeStyle = "yellow";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    });
+    ctx.beginPath();
+    ctx.moveTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   });
 }
 
-// ===== カメラ =====
+// ------- カメラ起動 -------
 async function setupCamera() {
   const video = document.createElement("video");
+  video.width = canvas.width;
+  video.height = canvas.height;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.muted = true;
 
   const stream = await navigator.mediaDevices.getUserMedia({
     video: {
-      width: 320,
-      height: 240,
-      facingMode: "user"
-    }
+      facingMode: "user",
+      width: { ideal: 640 },
+      height: { ideal: 480 }
+    },
+    audio: false
   });
 
   video.srcObject = stream;
-  await new Promise(res => video.onloadedmetadata = res);
+
+  await new Promise(res => {
+    video.onloadedmetadata = () => {
+      video.play();
+      res();
+    };
+  });
+
   return video;
 }
 
-// ===== メイン =====
+// ------- メイン処理 -------
 async function main() {
   const video = await setupCamera();
 
+  // 全身 MoveNet
   const detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.MoveNet,
     { modelType: "SinglePose.Lightning" }
   );
 
-  hands = new Hands({
-    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-  });
-
-  hands.setOptions({
-    maxNumHands: 1, // 軽量化
-    modelComplexity: 0 // 軽量化
-  });
-
-  hands.onResults(results => {
-    cachedHands = results.multiHandLandmarks;
-  });
+  // 手 HandPose
+  handModel = await handpose.load();
 
   async function loop() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // ---- 体（毎フレーム）----
+    // ------- 全身 -------
     const poses = await detector.estimatePoses(video);
+
     if (poses.length > 0) {
       let keypoints = poses[0].keypoints;
-      keypoints = smoothKeypoints(keypoints, previousKeypoints);
+
+      // 揺れ防止
+      keypoints = smoothKeypoints(keypoints, previousKeypoints, 0.85);
       previousKeypoints = keypoints;
-      drawBody(keypoints);
+
+      drawBodyKeypoints(keypoints);
+      drawBodySkeleton(keypoints);
     }
 
-    // ---- 手（3フレームに1回だけ）----
-    frameCount++;
-    if (frameCount % 3 === 0) {
-      await hands.send({ image: video });
-    }
-
-    drawHands(cachedHands);
+    // ------- 手（指）-------
+    const hands = await handModel.estimateHands(video);
+    hands.forEach(hand => drawHand(hand));
 
     requestAnimationFrame(loop);
   }
