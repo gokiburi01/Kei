@@ -2,77 +2,59 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const loader = document.getElementById("loader");
-const loaderText = document.getElementById("loader-text");
 
-let poseDetector;
+let detector;
 let running = false;
+let frameSkip = 0;
 
-// ===== モデル読み込み =====
-async function initModel() {
-  loaderText.innerText = "モデルを読み込んでいます…";
-
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.3/wasm"
-  );
-
-  poseDetector = await PoseLandmarker.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath:
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.3/models/pose_landmarker_full.task",
-      delegate: "GPU",
-    },
-    runningMode: "video",
-    numPoses: 3,
-  });
-}
-
-// ===== カメラ =====
+// ===== カメラ起動 =====
 async function startCamera() {
-  loaderText.innerText = "カメラを起動しています…";
-
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
-    audio: false,
+    video: {
+      facingMode: "user",
+      width: 640,
+      height: 480
+    }
   });
 
   video.srcObject = stream;
 
-  await new Promise((resolve) => {
-    video.onloadedmetadata = () => resolve();
+  await new Promise(resolve => {
+    video.onloadedmetadata = resolve;
   });
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 }
 
-// ===== メインループ =====
-async function loop() {
-  if (!running) return;
+// ===== モデル読み込み（1人専用）=====
+async function loadModel() {
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.3/wasm"
+  );
 
-  const now = performance.now();
-  const result = await poseDetector.detectForVideo(video, now);
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (result?.landmarks) {
-    for (const pose of result.landmarks) {
-      drawPose(pose);
-    }
-  }
-
-  requestAnimationFrame(loop);
+  detector = await PoseLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath:
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.3/models/pose_landmarker_lite.task",
+      delegate: "GPU"
+    },
+    runningMode: "video",
+    numPoses: 1   // ← 1人に最適化
+  });
 }
 
 // ===== 棒人間描画 =====
 function drawPose(landmarks) {
+  const CONNS = PoseLandmarker.POSE_LANDMARKS_FULL;
+
   ctx.strokeStyle = "cyan";
   ctx.lineWidth = 2;
 
-  const CONNECTIONS = PoseLandmarker.POSE_LANDMARKS_FULL;
+  for (const [a, b] of CONNS) {
+    const p1 = landmarks[a];
+    const p2 = landmarks[b];
 
-  for (const [start, end] of CONNECTIONS) {
-    const p1 = landmarks[start];
-    const p2 = landmarks[end];
     if (!p1 || !p2) continue;
 
     ctx.beginPath();
@@ -82,19 +64,38 @@ function drawPose(landmarks) {
   }
 }
 
+// ===== メインループ =====
+async function loop() {
+  if (!running) return;
+
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  frameSkip++;
+  if (frameSkip % 2 === 0) { // ← 超軽量化ポイント
+    const now = performance.now();
+    const result = await detector.detectForVideo(video, now);
+
+    ctx.beginPath();
+
+    if (result?.landmarks[0]) {
+      drawPose(result.landmarks[0]);
+    }
+  }
+
+  requestAnimationFrame(loop);
+}
+
 // ===== 実行 =====
 (async () => {
-  await initModel();
   await startCamera();
 
-  // ロード完了メッセージ
-  loaderText.innerText = "ロード完了！";
-
-  setTimeout(() => {
+  // カメラが起動してからモデルを読む＝黒画面対策
+  setTimeout(async () => {
+    await loadModel();
     loader.style.opacity = 0;
-    setTimeout(() => loader.style.display = "none", 600);
-  }, 500);
+    setTimeout(() => loader.style.display = "none", 500);
 
-  running = true;
-  requestAnimationFrame(loop);
+    running = true;
+    loop();
+  }, 300);
 })();
