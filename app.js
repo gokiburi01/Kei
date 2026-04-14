@@ -1,131 +1,86 @@
+const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-let video, detector, hands;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// 下半身を含む骨格線
-const bodyConnections = [
-  ["left_shoulder", "right_shoulder"],
-  ["left_shoulder", "left_elbow"],
-  ["left_elbow", "left_wrist"],
-  ["right_shoulder", "right_elbow"],
-  ["right_elbow", "right_wrist"],
+// ======== カメラ起動（軽量モード） ========
+navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user", width: 640, height: 480 }
+}).then(stream => {
+    video.srcObject = stream;
+});
 
-  // 下半身
-  ["left_shoulder", "left_hip"],
-  ["right_shoulder", "right_hip"],
-  ["left_hip", "right_hip"],
-  ["left_hip", "left_knee"],
-  ["left_knee", "left_ankle"],
-  ["right_hip", "right_knee"],
-  ["right_knee", "right_ankle"]
-];
+// ======== Pose 初期化 ========
+const pose = new Pose.Pose({
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+});
 
-// 手指の線
-const fingerConnections = [
-  [0,1],[1,2],[2,3],[3,4],
-  [0,5],[5,6],[6,7],[7,8],
-  [5,9],[9,10],[10,11],[11,12],
-  [9,13],[13,14],[14,15],[15,16],
-  [13,17],[17,18],[18,19],[19,20]
-];
+pose.setOptions({
+    modelComplexity: 0,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+});
 
-// カメラ
-async function setupCamera(){
-  video = document.createElement("video");
-  video.autoplay = true;
-  video.playsInline = true;
+pose.onResults(draw);
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { width: 640, height: 480, facingMode: "user" }
-  });
-
-  video.srcObject = stream;
-  await new Promise(res => video.onloadedmetadata = res);
-}
-
-// 骨格描画
-function drawBody(keypoints){
-  keypoints.forEach(p => {
-    if(p.score > 0.3){
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
-      ctx.fillStyle = "red";
-      ctx.fill();
+const camera = new CameraUtils.Camera(video, {
+    onFrame: async () => {
+        await pose.send({ image: video });
     }
-  });
+});
+camera.start();
 
-  bodyConnections.forEach(([a,b])=>{
-    const p1 = keypoints.find(k => k.name === a);
-    const p2 = keypoints.find(k => k.name === b);
-    if(p1 && p2 && p1.score>0.3 && p2.score>0.3){
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.strokeStyle = "lime";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-  });
+// ======== 線を描く簡易関数 ========
+function line(a, b) {
+    ctx.beginPath();
+    ctx.moveTo(a.x * canvas.width, a.y * canvas.height);
+    ctx.lineTo(b.x * canvas.width, b.y * canvas.height);
+    ctx.stroke();
 }
 
-// 手描画
-function drawHands(results){
-  results.multiHandLandmarks &&
-    results.multiHandLandmarks.forEach(hand => {
-      // 点
-      hand.forEach(p=>{
-        ctx.beginPath();
-        ctx.arc(p.x * canvas.width, p.y * canvas.height, 3, 0, Math.PI*2);
-        ctx.fillStyle = "cyan";
-        ctx.fill();
-      });
-      // 線
-      fingerConnections.forEach(([a,b])=>{
-        const p1 = hand[a], p2 = hand[b];
-        ctx.beginPath();
-        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
-        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
-        ctx.strokeStyle = "yellow";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      });
-    });
+// ======== 棒人間を描画 ========
+function draw(results) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!results.poseLandmarks) return;
+
+    const lm = results.poseLandmarks;
+    ctx.strokeStyle = "#00ff00";
+    ctx.lineWidth = 4;
+
+    // ======== 上半身 ========
+    line(lm[11], lm[12]); // 肩〜肩
+    line(lm[11], lm[13]); // 左腕
+    line(lm[13], lm[15]);
+
+    line(lm[12], lm[14]); // 右腕
+    line(lm[14], lm[16]);
+
+    // ======== 下半身 ========
+    line(lm[23], lm[24]); // 腰
+    line(lm[23], lm[25]); // 左足
+    line(lm[25], lm[27]);
+    line(lm[27], lm[31]);
+
+    line(lm[24], lm[26]); // 右足
+    line(lm[26], lm[28]);
+    line(lm[28], lm[32]);
+
+    // ======== 指の簡易棒（軽量版） ========
+    drawSimpleFinger(lm[15], lm[19]); // 左手
+    drawSimpleFinger(lm[15], lm[17]);
+    drawSimpleFinger(lm[15], lm[21]);
+
+    drawSimpleFinger(lm[16], lm[20]); // 右手
+    drawSimpleFinger(lm[16], lm[18]);
+    drawSimpleFinger(lm[16], lm[22]);
 }
 
-// メイン
-async function init(){
-  await setupCamera();
-
-  detector = await poseDetection.createDetector(
-    poseDetection.SupportedModels.MoveNet,
-    { modelType: "SinglePose.Lightning" }
-  );
-
-  hands = new Hands({
-    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-  });
-
-  hands.setOptions({
-    maxNumHands: 2,
-    minDetectionConfidence: 0.6,
-    minTrackingConfidence: 0.6
-  });
-
-  hands.onResults(drawHands);
-
-  async function loop(){
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const poses = await detector.estimatePoses(video);
-    poses.forEach(p => drawBody(p.keypoints));
-
-    await hands.send({image: video});
-
-    requestAnimationFrame(loop);
-  }
-
-  loop();
+function drawSimpleFinger(base, tip) {
+    ctx.strokeStyle = "#ffaa00";
+    line(base, tip);
 }
-
-init();
