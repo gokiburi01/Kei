@@ -2,30 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>全身＋指のポーズ検出</title>
+  <title>複数人ポーズ検出（体＋両手）</title>
 
   <!-- TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.4.0"></script>
-
-  <!-- MoveNet（全身） -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
-
-  <!-- HandPose（指） -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
 
   <!-- WebGL backend -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
+
+  <!-- MoveNet（複数人対応） -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.min.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      background: #000;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-    }
+    body { margin: 0; background: #000; overflow: hidden; }
+    canvas { display: block; margin: auto; }
   </style>
 </head>
 <body>
