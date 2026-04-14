@@ -3,38 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pose App</title>
+  <title>Ultra Light Pose App</title>
 
   <style>
-    body { margin: 0; background: #000; overflow: hidden; }
-    #canvas { position: absolute; top: 0; left: 0; }
-    #video { display: none; }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+    }
 
-    #loader {
+    #loadingScreen {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      color: #fff;
+      background: #000;
+      color: #0f0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      flex-direction: column;
       font-size: 24px;
-      transition: opacity 0.6s ease;
+    }
+
+    #video {
+      display: none;
+    }
+
+    #canvas {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
     }
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.3/vision_bundle.js"></script>
-  <script defer src="app.js"></script>
 </head>
+
 <body>
+  <div id="loadingScreen">
+    <div>ロード中...</div>
+    <div id="progress">0%</div>
+  </div>
 
-<div id="loader">ロード中...</div>
+  <video id="video" playsinline></video>
+  <canvas id="canvas"></canvas>
 
-<video id="video" autoplay playsinline></video>
-<canvas id="canvas"></canvas>
+  <!-- TensorFlow.js と MoveNet -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
+  <script src="app.js"></script>
 </body>
 </html>
