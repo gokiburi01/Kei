@@ -1,42 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>全身＋両手のポーズ検出</title>
-
-  <!-- TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
-
-  <!-- WebGL backend（必ず TFJS より後） -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
-
-  <!-- MoveNet -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
-
-  <!-- MediaPipe Hands（正しい CDN の書き方） -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Tracking (Lightweight)</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        #video {
+            position: fixed;
+            right: 10px;
+            bottom: 10px;
+            width: 220px;
+            border: 2px solid white;
+        }
+    </style>
 </head>
-
 <body>
-
-<canvas id="canvas" width="640" height="480"></canvas>
-
-<!-- app.js を最後に読み込む -->
-<script src="app.js" defer></script>
-
+    <video id="video" autoplay playsinline muted></video>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm/vision_wasm_internal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0"></script>
+    
+    <script src="app.js"></script>
 </body>
 </html>
