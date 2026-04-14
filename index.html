@@ -2,33 +2,28 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultra Light Pose + Finger Demo</title>
+  <title>Final Hybrid Pose</title>
 
-  <!-- MediaPipe Pose（軽い） -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+  <!-- TFJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.13.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.13.0"></script>
+
+  <!-- MoveNet -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
+  <!-- Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #000;
-    }
-    video, canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-    }
+    body { margin:0; background:black; overflow:hidden; }
+    canvas { display:block; margin:auto; }
   </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
 
-  <script src="app.js"></script>
+<canvas id="canvas" width="640" height="480"></canvas>
+
+<script src="app.js" defer></script>
+
 </body>
 </html>
