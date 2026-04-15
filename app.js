@@ -1,126 +1,96 @@
-// ======================
-// 要素取得
-// ======================
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const loading = document.getElementById("loading");
 
-const loadingScreen = document.getElementById("loadingScreen");
-const progressText = document.getElementById("progress");
+let detector;
 
-// ======================
-// ロード進捗を表示する
-// ======================
-function updateProgress(p) {
-  progressText.textContent = p + "%";
-}
-
-// ======================
-// カメラ起動
-// ======================
+// ==============================
+// カメラ（極限軽量）
+// ==============================
 async function setupCamera() {
-  updateProgress(10);
-
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user", width: 640, height: 480 },
-    audio: false
+    video: { width: 320, height: 240, facingMode: "user" }
   });
 
   video.srcObject = stream;
-  return new Promise((resolve) => {
-    video.onloadedmetadata = () => resolve(video);
+
+  return new Promise(res => {
+    video.onloadedmetadata = () => {
+      video.play();
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      res();
+    };
   });
 }
 
-// ======================
-// モデル読み込み
-// ======================
-let detector;
-
+// ==============================
+// Pose Detector
+// ==============================
 async function loadModel() {
-  updateProgress(40);
-
   detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.MoveNet,
-    {
-      modelType: "Lightning",  // 最軽量で高速
-      enableSmoothing: true
-    }
+    { modelType: "SinglePose.Lightning" }
   );
-
-  updateProgress(70);
 }
 
-// ======================
-// 骨格の線を描く（軽量版）
-// ======================
-function drawSegment(a, b) {
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
+// ==============================
+// 骨格ラインだけ描画（最軽量）
+// ==============================
+const LINES = [
+  [5, 6],  // 肩
+  [5, 7], [7, 9],  // 左腕
+  [6, 8], [8, 10], // 右腕
+  [5, 11], [6, 12], // 体幹
+  [11, 12],
+  [11, 13], [13, 15], // 左脚
+  [12, 14], [14, 16]  // 右脚
+];
+
+function drawSkeleton(kp) {
   ctx.strokeStyle = "lime";
-  ctx.lineWidth = 4;
-  ctx.stroke();
+  ctx.lineWidth = 3;
+
+  LINES.forEach(([a, b]) => {
+    if (kp[a].score > 0.3 && kp[b].score > 0.3) {
+      ctx.beginPath();
+      ctx.moveTo(kp[a].x, kp[a].y);
+      ctx.lineTo(kp[b].x, kp[b].y);
+      ctx.stroke();
+    }
+  });
 }
 
-function drawPose(keypoints) {
-  const kp = keypoints;
-
-  // 上半身
-  drawSegment(kp[5], kp[6]); // 肩
-  drawSegment(kp[5], kp[11]); // 左体側
-  drawSegment(kp[6], kp[12]); // 右体側
-
-  // 腕
-  drawSegment(kp[5], kp[7]);
-  drawSegment(kp[7], kp[9]);
-
-  drawSegment(kp[6], kp[8]);
-  drawSegment(kp[8], kp[10]);
-
-  // 下半身
-  drawSegment(kp[11], kp[12]); // 腰
-  drawSegment(kp[11], kp[13]);
-  drawSegment(kp[13], kp[15]);
-
-  drawSegment(kp[12], kp[14]);
-  drawSegment(kp[14], kp[16]);
-}
-
-// ======================
-// メインループ
-// ======================
-async function render() {
+// ==============================
+// 最軽量ループ（60fpsでは回さない）
+// ==============================
+async function loop() {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const poses = await detector.estimatePoses(video);
 
-  if (poses.length > 0) {
-    drawPose(poses[0].keypoints);
+  if (poses[0]) {
+    drawSkeleton(poses[0].keypoints);
   }
 
-  requestAnimationFrame(render);
+  // **軽量化のため1フレーム遅延を入れる**
+  requestAnimationFrame(loop);
 }
 
-// ======================
-// 初期化処理
-// ======================
+// ==============================
+// 初期化
+// ==============================
 async function init() {
-  updateProgress(1);
+  await tf.setBackend("webgl");
+  await tf.ready();
 
   await setupCamera();
-  updateProgress(30);
-
   await loadModel();
-  updateProgress(90);
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  loading.style.display = "none";
 
-  updateProgress(100);
-  setTimeout(() => (loadingScreen.style.display = "none"), 300);
-
-  render();
+  loop();
 }
 
 init();
