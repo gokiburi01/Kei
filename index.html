@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Ultra Fast Pose</title>
+  <meta charset="UTF-8" />
+  <title>Squat Counter</title>
 
-  <!-- TensorFlow + WebGL -->
+  <!-- TensorFlow & WebGL -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 
@@ -12,22 +12,52 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
   <style>
-    body { margin:0; background:black; }
-    #loading {
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background:black; color:white;
-      display:flex; align-items:center;
-      justify-content:center;
-      font-size:24px;
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      color: white;
+      font-family: sans-serif;
     }
-    canvas { width:100vw; height:100vh; }
+    #loading {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: black;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #warning {
+      position: fixed;
+      top: 10px; width: 100%;
+      text-align: center;
+      color: red;
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px black;
+    }
+    #counter {
+      position: fixed;
+      bottom: 20px; left: 20px;
+      font-size: 32px;
+      font-weight: bold;
+      color: lime;
+    }
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      background: black;
+    }
   </style>
 </head>
 <body>
 
-<div id="loading">起動中...</div>
+<div id="loading">ロード中...</div>
+<div id="warning"></div>
+<div id="counter">回数：0</div>
 
 <video id="video" autoplay playsinline style="display:none;"></video>
 <canvas id="canvas"></canvas>
