@@ -5,75 +5,88 @@ const ctx = canvas.getContext("2d");
 const squatSpan = document.getElementById("squatCount");
 const jumpSpan = document.getElementById("jumpCount");
 const warning = document.getElementById("warning");
-
+const loading = document.getElementById("loading");
 const resetBtn = document.getElementById("resetBtn");
 
-// カウンター
 let squatCount = 0;
 let jumpCount = 0;
 
-// 状態判定
 let wasSquatting = false;
 let wasJumping = false;
 
 let detector;
 
-// 全身チェックのための必要部位
-const neededParts = ["left_ankle","right_ankle","nose"];
+// 必須ポイントがすべて見えているかチェック
+const neededParts = ["nose", "left_ankle", "right_ankle", "left_hip", "right_hip"];
 
-// ===== カメラ起動 =====
+// ---------------------------
+// カメラ起動
+// ---------------------------
 async function startCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 640, height: 480 }
-    });
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user", width: 640, height: 480 }
+        });
+        video.srcObject = stream;
 
-    video.srcObject = stream;
-
-    return new Promise(resolve => {
-        video.onloadedmetadata = () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            resolve();
-        };
-    });
+        return new Promise(resolve => {
+            video.onloadedmetadata = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                resolve();
+            };
+        });
+    } catch (e) {
+        alert("カメラを起動できませんでした：" + e);
+    }
 }
 
-// ===== MoveNet読み込み =====
+// ---------------------------
+// MoveNet 読み込み
+// ---------------------------
 async function loadModel() {
+    loading.textContent = "🤖 モデルを初期化中…";
+
     detector = await poseDetection.createDetector(
         poseDetection.SupportedModels.MoveNet,
         {
-            modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+            modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
         }
     );
+
+    loading.textContent = "🎉 モデル読み込み完了！";
+    setTimeout(() => loading.style.display = "none", 1000);
 }
 
-// ===== 全身が映っているかチェック =====
-function isFullBodyVisible(keypoints) {
-    return neededParts.every(p =>
-        keypoints.find(k => k.name === p && k.score > 0.4)
-    );
+// ---------------------------
+// 全身チェック
+// ---------------------------
+function isFullBodyVisible(kp) {
+    return neededParts.every(name => {
+        const p = kp.find(k => k.name === name);
+        return p && p.score > 0.45;
+    });
 }
 
-// ===== 棒人間描画 =====
-function drawSkeleton(keypoints) {
+// ---------------------------
+// 骨格描画
+// ---------------------------
+function drawSkeleton(kp) {
     ctx.strokeStyle = "lime";
     ctx.lineWidth = 3;
 
-    const connect = (p1, p2) => {
-        const kp1 = keypoints.find(k => k.name === p1);
-        const kp2 = keypoints.find(k => k.name === p2);
-        if (kp1 && kp2 && kp1.score > 0.4 && kp2.score > 0.4) {
+    function line(a, b) {
+        const p1 = kp.find(k => k.name === a);
+        const p2 = kp.find(k => k.name === b);
+        if (p1 && p2 && p1.score > 0.5 && p2.score > 0.5) {
             ctx.beginPath();
-            ctx.moveTo(kp1.x, kp1.y);
-            ctx.lineTo(kp2.x, kp2.y);
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
             ctx.stroke();
         }
-    };
+    }
 
     const pairs = [
-        ["nose", "left_shoulder"],
-        ["nose", "right_shoulder"],
         ["left_shoulder","right_shoulder"],
         ["left_shoulder","left_elbow"],
         ["left_elbow","left_wrist"],
@@ -85,62 +98,68 @@ function drawSkeleton(keypoints) {
         ["left_hip","left_knee"],
         ["left_knee","left_ankle"],
         ["right_hip","right_knee"],
-        ["right_knee","right_ankle"]
+        ["right_knee","right_ankle"],
+        ["nose","left_shoulder"],
+        ["nose","right_shoulder"]
     ];
 
-    pairs.forEach(p => connect(p[0], p[1]));
+    pairs.forEach(p => line(p[0], p[1]));
 }
 
-// ===== メインループ =====
+// ---------------------------
+// メイン処理
+// ---------------------------
 async function loop() {
-    const poses = await detector.estimatePoses(video);
+    const poses = await detector.estimatePoses(video, { maxPoses: 1 });
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0);
 
     if (poses.length > 0) {
         const kp = poses[0].keypoints;
 
-        // 全身判定
+        // 全身が映っていなければカウントしない
         if (!isFullBodyVisible(kp)) {
             warning.textContent = "⚠ 全身が映っていません";
             requestAnimationFrame(loop);
             return;
-        } else {
-            warning.textContent = "";
         }
+        warning.textContent = "";
 
         drawSkeleton(kp);
 
-        // ===== 屈伸判定（腰の高さ） =====
-        const hip = (kp.find(k => k.name === "left_hip")?.y +
-                     kp.find(k => k.name === "right_hip")?.y) / 2;
+        // ===== 屈伸判定（ヒップの高さ） =====
+        const hipY =
+            (kp.find(k => k.name === "left_hip").y +
+            kp.find(k => k.name === "right_hip").y) / 2;
 
-        if (hip > canvas.height * 0.65) {
+        if (hipY > canvas.height * 0.65) {
             wasSquatting = true;
-        } else if (wasSquatting && hip < canvas.height * 0.55) {
+        } else if (wasSquatting && hipY < canvas.height * 0.55) {
             squatCount++;
             squatSpan.textContent = squatCount;
             wasSquatting = false;
         }
 
-        // ===== ジャンプ判定（重心の急上昇） =====
+        // ===== ジャンプ判定（鼻位置で判断）=====
         const nose = kp.find(k => k.name === "nose");
-        if (nose) {
-            if (nose.y < canvas.height * 0.25 && !wasJumping) {
-                wasJumping = true;
-                jumpCount++;
-                jumpSpan.textContent = jumpCount;
-            }
-            if (nose.y > canvas.height * 0.35) {
-                wasJumping = false;
-            }
+
+        if (nose.y < canvas.height * 0.25 && !wasJumping) {
+            jumpCount++;
+            jumpSpan.textContent = jumpCount;
+            wasJumping = true;
+        }
+        if (nose.y > canvas.height * 0.35) {
+            wasJumping = false;
         }
     }
 
     requestAnimationFrame(loop);
 }
 
-// リセット
+// ---------------------------
+// リセットボタン
+// ---------------------------
 resetBtn.onclick = () => {
     squatCount = 0;
     jumpCount = 0;
@@ -148,7 +167,9 @@ resetBtn.onclick = () => {
     jumpSpan.textContent = 0;
 };
 
-// ===== 起動 =====
+// ---------------------------
+// 起動
+// ---------------------------
 (async () => {
     await startCamera();
     await loadModel();
