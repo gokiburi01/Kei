@@ -38,6 +38,17 @@
       font-weight: bold;
     }
 
+    /* ★ 追加：安全警告文 */
+    #safeWarning {
+      position: fixed;
+      top: 55px;
+      width: 100%;
+      text-align: center;
+      color: yellow;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
     #counter {
       position: fixed;
       bottom: 20px;
@@ -76,7 +87,12 @@
 <body>
 
 <div id="loading">ロード中...</div>
+
+<!-- 全身警告 -->
 <div id="warning"></div>
+
+<!-- ★ 追加：安全のための警告文 -->
+<div id="safeWarning">人が周りにいないことを確認して下さい</div>
 
 <div id="counter">スクワット：0</div>
 <div id="jumpCounter">ジャンプ：0</div>
