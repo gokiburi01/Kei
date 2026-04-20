@@ -1,69 +1,59 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>スクワット & ジャンプ カウンター</title>
-
-  <!-- TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.4.0"></script>
-
-  <!-- MoveNet -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
-
-  <!-- WebGL backend -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-    }
-    #counter {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-size: 32px;
-    }
-    #jumpCounter {
-      position: fixed;
-      top: 50px;
-      left: 10px;
-      color: cyan;
-      font-size: 32px;
-    }
-    #warning {
-      position: fixed;
-      top: 100px;
-      left: 10px;
-      color: red;
-      font-size: 32px;
-    }
-    #resetBtn {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      font-size: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Pose Counter</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        video, canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #infoBox {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        #warning {
+            color: red;
+            font-weight: bold;
+        }
+        button {
+            margin-top: 180px;
+            padding: 10px 20px;
+            font-size: 20px;
+        }
+    </style>
 </head>
+
 <body>
 
-  <canvas id="canvas" width="640" height="480"></canvas>
+<div id="infoBox">
+    <div>屈伸回数：<span id="squatCount">0</span></div>
+    <div>ジャンプ回数：<span id="jumpCount">0</span></div>
+    <div id="warning"></div>
+</div>
 
-  <div id="counter">回数：0</div>
-  <div id="jumpCounter">ジャンプ：0</div>
-  <div id="warning"></div>
+<button id="resetBtn">リセット</button>
 
-  <button id="resetBtn">リセット</button>
+<video id="camera" autoplay playsinline></video>
+<canvas id="output"></canvas>
 
-  <script src="app.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
+<script src="app.js"></script>
 </body>
 </html>
