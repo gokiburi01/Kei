@@ -1,92 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>運動カウンター</title>
+  <meta charset="UTF-8">
+  <title>スクワット & ジャンプ カウンター</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.4.0"></script>
+
+  <!-- MoveNet -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
+  <!-- WebGL backend -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 
   <style>
     body {
       margin: 0;
       background: black;
       overflow: hidden;
-      font-family: sans-serif;
-      color: white;
     }
-
-    #loading {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: black;
-      font-size: 24px;
+    canvas {
+      display: block;
+      margin: auto;
     }
-
-    #warning {
-      position: fixed;
-      top: 10px;
-      width: 100%;
-      text-align: center;
-      color: red;
-      font-size: 24px;
-      font-weight: bold;
-    }
-
     #counter {
       position: fixed;
-      bottom: 20px;
-      left: 20px;
-      font-size: 28px;
-      color: lime;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 32px;
     }
-
     #jumpCounter {
       position: fixed;
-      bottom: 60px;
-      left: 20px;
-      font-size: 28px;
+      top: 50px;
+      left: 10px;
       color: cyan;
+      font-size: 32px;
     }
-
+    #warning {
+      position: fixed;
+      top: 100px;
+      left: 10px;
+      color: red;
+      font-size: 32px;
+    }
     #resetBtn {
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      left: 20px;
       padding: 10px 20px;
-      font-size: 16px;
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 8px;
-    }
-
-    canvas {
-      width: 100vw;
-      height: 100vh;
+      font-size: 20px;
     }
   </style>
 </head>
-
 <body>
 
-<div id="loading">ロード中...</div>
-<div id="warning"></div>
+  <canvas id="canvas" width="640" height="480"></canvas>
 
-<div id="counter">スクワット：0</div>
-<div id="jumpCounter">ジャンプ：0</div>
+  <div id="counter">回数：0</div>
+  <div id="jumpCounter">ジャンプ：0</div>
+  <div id="warning"></div>
 
-<button id="resetBtn">リセット</button>
+  <button id="resetBtn">リセット</button>
 
-<video id="video" autoplay playsinline style="display:none;"></video>
-<canvas id="canvas"></canvas>
-
-<script src="app.js"></script>
+  <script src="app.js" defer></script>
 
 </body>
 </html>
