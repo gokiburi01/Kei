@@ -1,170 +1,157 @@
-const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const loading = document.getElementById("loading");
-const warning = document.getElementById("warning");
 const counterText = document.getElementById("counter");
 const jumpCounterText = document.getElementById("jumpCounter");
-const resetBtn = document.getElementById("resetBtn");
+const warningText = document.getElementById("warning");
+const resetBtn = document.getElementById("reset");
 
-let detector;
-
-// ===== 状態 =====
 let squatCount = 0;
 let jumpCount = 0;
 
-let squatState = "up";
-let isJumping = false;
+// スクワット判定
+let state = "up"; // up → down → upで+1
 
+// ジャンプ判定
+let isJumping = false;
 let prevHipY = null;
 
-// ===== カメラ =====
+// モデル
+let detector = null;
+
+// -------------------------------
+// 全身が映っているかチェック
+// -------------------------------
+function isFullBodyVisible(keypoints) {
+  if (!keypoints) return false;
+
+  const requiredParts = [
+    "nose",
+    "left_shoulder",
+    "right_shoulder",
+    "left_ankle",
+    "right_ankle"
+  ];
+
+  // 必須パーツ確認
+  for (let part of requiredParts) {
+    const kp = keypoints.find(k => k.name === part);
+    if (!kp || kp.score < 0.6) return false;
+  }
+
+  // 全体の信頼点 14以上か
+  const visibleCount = keypoints.filter(k => k.score > 0.6).length;
+  return visibleCount >= 14;
+}
+
+// -------------------------------
+// カメラセットアップ
+// -------------------------------
 async function setupCamera() {
+  const video = document.createElement("video");
+
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { width: 320, height: 240, facingMode: "user" }
+    video: { facingMode: "user", width: 640, height: 480 },
+    audio: false
   });
 
   video.srcObject = stream;
+  video.play();
 
-  return new Promise(res => {
-    video.onloadedmetadata = () => {
-      video.play();
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      res();
-    };
-  });
+  await new Promise(res => (video.onloadedmetadata = res));
+  return video;
 }
 
-// ===== モデル =====
-async function loadModel() {
+// -------------------------------
+// メイン処理
+// -------------------------------
+async function main() {
+  const video = await setupCamera();
+
   detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.MoveNet,
     { modelType: "SinglePose.Lightning" }
   );
-}
 
-// ===== 骨格 =====
-const LINES = [
-  [5,6],
-  [5,7],[7,9],
-  [6,8],[8,10],
-  [5,11],[6,12],
-  [11,12],
-  [11,13],[13,15],
-  [12,14],[14,16]
-];
+  async function loop() {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-function drawSkeleton(kp) {
-  ctx.strokeStyle = "lime";
-  ctx.lineWidth = 3;
+    const poses = await detector.estimatePoses(video);
+    const pose = poses[0];
 
-  LINES.forEach(([a,b]) => {
-    if (kp[a].score > 0.3 && kp[b].score > 0.3) {
-      ctx.beginPath();
-      ctx.moveTo(kp[a].x, kp[a].y);
-      ctx.lineTo(kp[b].x, kp[b].y);
-      ctx.stroke();
-    }
-  });
-}
+    if (pose && pose.keypoints) {
+      const keypoints = pose.keypoints;
 
-// ===== 全身チェック =====
-function isFullBodyVisible(kp) {
-  const needed = [5,6,11,12,13,14,15,16];
-  return needed.every(i => kp[i].score > 0.3);
-}
+      // ---------------------------
+      // 全身チェック
+      // ---------------------------
+      if (!isFullBodyVisible(keypoints)) {
+        warningText.innerText = "全身が映っていません";
+        return requestAnimationFrame(loop);
+      } else {
+        warningText.innerText = "";
+      }
 
-// ===== スクワット検出 =====
-function detectSquat(kp) {
-  const hip = (kp[11].y + kp[12].y) / 2;
-  const knee = (kp[13].y + kp[14].y) / 2;
+      // ---------------------------
+      // スクワット判定（膝の高さで判断）
+      // ---------------------------
+      const hip = keypoints.find(k => k.name === "left_hip") || keypoints.find(k => k.name === "right_hip");
+      const knee = keypoints.find(k => k.name === "left_knee") || keypoints.find(k => k.name === "right_knee");
 
-  const isDown = hip > knee - 10;
+      if (hip && knee && hip.score > 0.5 && knee.score > 0.5) {
+        const diff = knee.y - hip.y; // 膝が腰より上に近づく→しゃがむ
 
-  if (squatState === "up" && isDown) {
-    squatState = "down";
-  }
+        if (diff > 40 && state === "up") state = "down";
+        if (diff < 20 && state === "down") {
+          squatCount++;
+          counterText.innerText = "回数：" + squatCount;
+          state = "up";
+        }
+      }
 
-  if (squatState === "down" && !isDown) {
-    squatState = "up";
-    squatCount++;
-    counterText.innerText = "スクワット：" + squatCount;
-  }
-}
+      // ---------------------------
+      // ジャンプ判定（腰の垂直移動）
+      // ---------------------------
+      const hip2 = hip;
+      if (hip2 && hip2.score > 0.6) {
+        const hipY = hip2.y;
 
-// ===== ジャンプ検出 =====
-function detectJump(kp) {
-  const hip = (kp[11].y + kp[12].y) / 2;
+        if (prevHipY === null) prevHipY = hipY;
 
-  if (prevHipY === null) {
-    prevHipY = hip;
-    return;
-  }
+        const diffY = prevHipY - hipY; // 身体が上がるほど数値↑
 
-  const diff = prevHipY - hip;
+        if (diffY > 25 && !isJumping) {
+          isJumping = true;
+        }
 
-  if (diff > 20 && !isJumping) {
-    isJumping = true;
-  }
+        if (isJumping && diffY < 5) {
+          jumpCount++;
+          jumpCounterText.innerText = "ジャンプ：" + jumpCount;
+          isJumping = false;
+        }
 
-  if (isJumping && diff < 5) {
-    jumpCount++;
-    jumpCounterText.innerText = "ジャンプ：" + jumpCount;
-    isJumping = false;
-  }
-
-  prevHipY = hip;
-}
-
-// ===== ループ =====
-async function loop() {
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const poses = await detector.estimatePoses(video);
-
-  if (poses[0]) {
-    const kp = poses[0].keypoints;
-
-    // 全身チェック
-    if (!isFullBodyVisible(kp)) {
-      warning.innerText = "全身が映っていません";
-    } else {
-      warning.innerText = "";
+        prevHipY = hipY;
+      }
     }
 
-    drawSkeleton(kp);
-    detectSquat(kp);
-    detectJump(kp);
+    requestAnimationFrame(loop);
   }
-
-  requestAnimationFrame(loop);
-}
-
-// ===== リセット =====
-resetBtn.addEventListener("click", () => {
-  squatCount = 0;
-  jumpCount = 0;
-  squatState = "up";
-  isJumping = false;
-  prevHipY = null;
-
-  counterText.innerText = "スクワット：0";
-  jumpCounterText.innerText = "ジャンプ：0";
-});
-
-// ===== 初期化 =====
-async function init() {
-  await tf.setBackend("webgl");
-  await tf.ready();
-
-  await setupCamera();
-  await loadModel();
-
-  loading.style.display = "none";
 
   loop();
 }
 
-init();
+main();
+
+// -------------------------------
+// リセットボタン
+// -------------------------------
+resetBtn.addEventListener("click", () => {
+  squatCount = 0;
+  jumpCount = 0;
+  state = "up";
+  isJumping = false;
+  prevHipY = null;
+
+  counterText.innerText = "回数：0";
+  jumpCounterText.innerText = "ジャンプ：0";
+});
