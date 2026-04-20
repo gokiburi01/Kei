@@ -4,27 +4,20 @@ const ctx = canvas.getContext("2d");
 const counterText = document.getElementById("counter");
 const jumpCounterText = document.getElementById("jumpCounter");
 const warningText = document.getElementById("warning");
-const resetBtn = document.getElementById("reset");
+const resetBtn = document.getElementById("resetBtn");
 
 let squatCount = 0;
 let jumpCount = 0;
-
-// スクワット判定
-let state = "up"; // up → down → upで+1
-
-// ジャンプ判定
+let state = "up"; // スクワット状態
 let isJumping = false;
-let prevHipY = null;
 
-// モデル
 let detector = null;
 
-// -------------------------------
-// 全身が映っているかチェック
-// -------------------------------
-function isFullBodyVisible(keypoints) {
-  if (!keypoints) return false;
+// 前フレームの腰Y座標
+let prevHipY = null;
 
+// ---------------------- 全身チェック ----------------------
+function isFullBodyVisible(keypoints) {
   const requiredParts = [
     "nose",
     "left_shoulder",
@@ -33,38 +26,38 @@ function isFullBodyVisible(keypoints) {
     "right_ankle"
   ];
 
-  // 必須パーツ確認
+  // 必須5点
   for (let part of requiredParts) {
     const kp = keypoints.find(k => k.name === part);
     if (!kp || kp.score < 0.6) return false;
   }
 
-  // 全体の信頼点 14以上か
+  // 全体のスコアが良い点が14以上
   const visibleCount = keypoints.filter(k => k.score > 0.6).length;
   return visibleCount >= 14;
 }
 
-// -------------------------------
-// カメラセットアップ
-// -------------------------------
+// ---------------------- カメラ ----------------------
 async function setupCamera() {
   const video = document.createElement("video");
+  video.width = 640;
+  video.height = 480;
+  video.autoplay = true;
+  video.playsInline = true;
 
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user", width: 640, height: 480 },
-    audio: false
+    video: { facingMode: "user" }
+  });
+  video.srcObject = stream;
+
+  await new Promise(res => {
+    video.onloadedmetadata = () => res();
   });
 
-  video.srcObject = stream;
-  video.play();
-
-  await new Promise(res => (video.onloadedmetadata = res));
   return video;
 }
 
-// -------------------------------
-// メイン処理
-// -------------------------------
+// ---------------------- メイン処理 ----------------------
 async function main() {
   const video = await setupCamera();
 
@@ -77,61 +70,70 @@ async function main() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const poses = await detector.estimatePoses(video);
+    if (poses.length === 0) {
+      warningText.innerText = "人物が映っていません";
+      return requestAnimationFrame(loop);
+    }
+
     const pose = poses[0];
+    const keypoints = pose.keypoints;
 
-    if (pose && pose.keypoints) {
-      const keypoints = pose.keypoints;
+    // ----------- 全身チェック -----------
+    if (!isFullBodyVisible(keypoints)) {
+      warningText.innerText = "全身が映っていません";
+      return requestAnimationFrame(loop);
+    } else {
+      warningText.innerText = "";
+    }
 
-      // ---------------------------
-      // 全身チェック
-      // ---------------------------
-      if (!isFullBodyVisible(keypoints)) {
-        warningText.innerText = "全身が映っていません";
-        return requestAnimationFrame(loop);
-      } else {
-        warningText.innerText = "";
+    // ------------------ スクワット判定 ------------------
+    const leftHip = keypoints.find(p => p.name === "left_hip");
+    const rightHip = keypoints.find(p => p.name === "right_hip");
+    const leftKnee = keypoints.find(p => p.name === "left_knee");
+    const rightKnee = keypoints.find(p => p.name === "right_knee");
+
+    if (leftHip && rightHip && leftKnee && rightKnee) {
+      const hipY = (leftHip.y + rightHip.y) / 2;
+      const kneeY = (leftKnee.y + rightKnee.y) / 2;
+
+      // しゃがんだ状態
+      if (hipY > kneeY + 30 && state === "up") {
+        state = "down";
       }
 
-      // ---------------------------
-      // スクワット判定（膝の高さで判断）
-      // ---------------------------
-      const hip = keypoints.find(k => k.name === "left_hip") || keypoints.find(k => k.name === "right_hip");
-      const knee = keypoints.find(k => k.name === "left_knee") || keypoints.find(k => k.name === "right_knee");
+      // 立ち上がった
+      if (hipY < kneeY && state === "down") {
+        squatCount++;
+        counterText.innerText = "回数：" + squatCount;
+        state = "up";
+      }
+    }
 
-      if (hip && knee && hip.score > 0.5 && knee.score > 0.5) {
-        const diff = knee.y - hip.y; // 膝が腰より上に近づく→しゃがむ
+    // ------------------ ジャンプ判定 ------------------
+    const hipMain =
+      keypoints.find(k => k.name === "left_hip") ||
+      keypoints.find(k => k.name === "right_hip");
 
-        if (diff > 40 && state === "up") state = "down";
-        if (diff < 20 && state === "down") {
-          squatCount++;
-          counterText.innerText = "回数：" + squatCount;
-          state = "up";
-        }
+    if (hipMain && hipMain.score > 0.6) {
+      const hipY = hipMain.y;
+
+      if (prevHipY == null) prevHipY = hipY;
+
+      const diff = prevHipY - hipY;
+
+      // 上方向へ大きく動いたらジャンプ
+      if (diff > 25 && !isJumping) {
+        isJumping = true;
       }
 
-      // ---------------------------
-      // ジャンプ判定（腰の垂直移動）
-      // ---------------------------
-      const hip2 = hip;
-      if (hip2 && hip2.score > 0.6) {
-        const hipY = hip2.y;
-
-        if (prevHipY === null) prevHipY = hipY;
-
-        const diffY = prevHipY - hipY; // 身体が上がるほど数値↑
-
-        if (diffY > 25 && !isJumping) {
-          isJumping = true;
-        }
-
-        if (isJumping && diffY < 5) {
-          jumpCount++;
-          jumpCounterText.innerText = "ジャンプ：" + jumpCount;
-          isJumping = false;
-        }
-
-        prevHipY = hipY;
+      // 着地して戻ったらカウント
+      if (isJumping && diff < 5) {
+        jumpCount++;
+        jumpCounterText.innerText = "ジャンプ：" + jumpCount;
+        isJumping = false;
       }
+
+      prevHipY = hipY;
     }
 
     requestAnimationFrame(loop);
@@ -140,18 +142,16 @@ async function main() {
   loop();
 }
 
-main();
-
-// -------------------------------
-// リセットボタン
-// -------------------------------
+// ----------------- リセット -----------------
 resetBtn.addEventListener("click", () => {
   squatCount = 0;
   jumpCount = 0;
+  prevHipY = null;
   state = "up";
   isJumping = false;
-  prevHipY = null;
 
   counterText.innerText = "回数：0";
   jumpCounterText.innerText = "ジャンプ：0";
 });
+
+main();
