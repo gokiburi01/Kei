@@ -6,11 +6,11 @@
     <style>
         body {
             margin: 0;
+            background: #000;
+            color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: #000;
-            color: #fff;
             font-family: Arial, sans-serif;
         }
         video, canvas {
@@ -22,27 +22,32 @@
             position: fixed;
             top: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 6px;
         }
         #warning {
             color: red;
             font-weight: bold;
         }
         button {
-            margin-top: 180px;
+            margin-top: 200px;
             padding: 10px 20px;
-            font-size: 20px;
+            font-size: 18px;
+        }
+        #loading {
+            margin-top: 40px;
+            color: #0f0;
         }
     </style>
 </head>
-
 <body>
 
+<h2 id="loading">📡 モデルを読み込み中…</h2>
+
 <div id="infoBox">
-    <div>屈伸回数：<span id="squatCount">0</span></div>
-    <div>ジャンプ回数：<span id="jumpCount">0</span></div>
+    <div>屈伸：<span id="squatCount">0</span></div>
+    <div>ジャンプ：<span id="jumpCount">0</span></div>
     <div id="warning"></div>
 </div>
 
@@ -51,7 +56,8 @@
 <video id="camera" autoplay playsinline></video>
 <canvas id="output"></canvas>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+<!-- ★ CDN を確実なバージョンに固定 ★ -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
 <script src="app.js"></script>
