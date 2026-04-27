@@ -1,158 +1,111 @@
-let squatCount = 0;
-let jumpCount = 0;
+let squat = 0;
+let jump = 0;
 
-let stageSquat = "up";
-let stageJump = "ground";
+let video = document.getElementById("video");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
-let initialAnkleY = null;
+let warning = document.getElementById("warning");
 
-let currentFacing = "user"; // ← インカメラ
-let stream;
+let currentFacing = "user";
+let stream = null;
 
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const warning = document.getElementById("warning");
+let pose;
+let running = false;
 
-document.getElementById("resetBtn").onclick = () => {
-    squatCount = 0;
-    jumpCount = 0;
-    stageSquat = "up";
-    stageJump = "ground";
-    initialAnkleY = null;
-};
-
-document.getElementById("switchCameraBtn").onclick = () => {
-    currentFacing = currentFacing === "user" ? "environment" : "user";
-    switchCamera();
-};
-
-function angle(a, b, c) {
-    const ab = { x: a.x - b.x, y: a.y - b.y };
-    const cb = { x: c.x - b.x, y: c.y - b.y };
-    const dot = ab.x * cb.x + ab.y * cb.y;
-    const mag1 = Math.hypot(ab.x, ab.y);
-    const mag2 = Math.hypot(cb.x, cb.y);
-    return Math.acos(dot / (mag1 * mag2 + 1e-6)) * (180 / Math.PI);
-}
-
+// ===== カメラ =====
 async function startCamera() {
-    if (stream) {
-        stream.getTracks().forEach(t => t.stop());
+    try {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacing }
+        });
+
+        video.srcObject = stream;
+
+        await video.play();
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+    } catch (e) {
+        warning.style.display = "block";
+        warning.innerText = "カメラが起動できません（権限 or HTTPS確認）";
+        console.error(e);
     }
-
-    stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: currentFacing }
-    });
-
-    video.srcObject = stream;
-
-    return new Promise(res => {
-        video.onloadeddata = () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            res();
-        };
-    });
 }
 
-async function switchCamera() {
-    await startCamera();
-}
-
-async function main() {
+// ===== モデル =====
+async function loadModel() {
     const visionObj = await vision;
 
-    const pose = await visionObj.PoseLandmarker.createFromOptions(visionObj, {
+    pose = await visionObj.PoseLandmarker.createFromOptions(visionObj, {
         baseOptions: {
             modelAssetPath:
-                "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/pose_landmarker_heavy.task"
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/pose_landmarker_lite.task"
         },
         runningMode: "video"
     });
+}
 
+// ===== スタート =====
+document.getElementById("startBtn").onclick = async () => {
+
+    this.disabled = true;
+
+    await loadModel();
     await startCamera();
 
-    function isFullyVisible(lm) {
-        const need = [0, 23, 24, 25, 26, 27, 28];
-        return need.every(i => lm[i] && lm[i].visibility > 0.6);
-    }
+    running = true;
+    loop();
 
-    function loop() {
-        const now = performance.now();
+    document.getElementById("startBtn").style.display = "none";
+};
 
-        pose.detectForVideo(video, now, (res) => {
+// ===== 切替 =====
+document.getElementById("switchCameraBtn").onclick = async () => {
+    currentFacing = currentFacing === "user" ? "environment" : "user";
+    await startCamera();
+};
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+// ===== リセット =====
+document.getElementById("resetBtn").onclick = () => {
+    squat = 0;
+    jump = 0;
+    document.getElementById("sq").innerText = 0;
+    document.getElementById("jp").innerText = 0;
+};
 
-            if (!res.landmarks || res.landmarks.length === 0) {
-                warning.style.display = "block";
-                warning.innerText = "人が周りにいないことを確認してください";
-                requestAnimationFrame(loop);
-                return;
-            }
+// ===== ループ =====
+function loop() {
+    if (!running) return;
 
-            const lm = res.landmarks[0];
+    const now = performance.now();
 
-            if (!isFullyVisible(lm)) {
-                warning.style.display = "block";
-                warning.innerText = "全身が映っていません";
-                requestAnimationFrame(loop);
-                return;
-            }
-            warning.style.display = "none";
+    pose.detectForVideo(video, now, (res) => {
 
-            // --- スクワット ---
-            const L_hip = lm[23];
-            const R_hip = lm[24];
-            const L_knee = lm[25];
-            const R_knee = lm[26];
-            const L_ankle = lm[27];
-            const R_ankle = lm[28];
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            const L_angle = angle(L_hip, L_knee, L_ankle);
-            const R_angle = angle(R_hip, R_knee, R_ankle);
+        if (!res.landmarks || res.landmarks.length === 0) {
+            warning.style.display = "block";
+            warning.innerText = "全身が映っていません";
+            requestAnimationFrame(loop);
+            return;
+        }
 
-            if (L_angle < 120 && R_angle < 120) stageSquat = "down";
-            if (stageSquat === "down" && L_angle > 160 && R_angle > 160) {
-                squatCount++;
-                stageSquat = "up";
-            }
+        warning.style.display = "none";
 
-            // --- ジャンプ ---
-            const avgY = (L_ankle.y + R_ankle.y) / 2;
-
-            if (initialAnkleY === null) initialAnkleY = avgY;
-
-            const jumpBorder = initialAnkleY * 0.88;
-
-            if (avgY < jumpBorder && stageJump === "ground") {
-                stageJump = "air";
-            }
-            if (avgY > initialAnkleY * 0.98 && stageJump === "air") {
-                jumpCount++;
-                stageJump = "ground";
-            }
-
-            // 点描画（軽量）
-            ctx.fillStyle = "lime";
-            lm.forEach(p => {
-                ctx.beginPath();
-                ctx.arc(p.x * canvas.width, p.y * canvas.height, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.fillStyle = "yellow";
-            ctx.font = "28px sans-serif";
-            ctx.fillText("Squat: " + squatCount, 20, 40);
-            ctx.fillText("Jump: " + jumpCount, 20, 80);
+        // 表示
+        ctx.fillStyle = "lime";
+        res.landmarks[0].forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x * canvas.width, p.y * canvas.height, 4, 0, Math.PI * 2);
+            ctx.fill();
         });
 
         requestAnimationFrame(loop);
-    }
-
-    loop();
+    });
 }
-
-main();
