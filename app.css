@@ -1,0 +1,79 @@
+/* 全体 */
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #000000, #111);
+    color: white;
+    font-family: "Segoe UI", sans-serif;
+    overflow: hidden;
+}
+
+/* canvas */
+canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+/* 上部メッセージ */
+#warning {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 0, 0, 0.8);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 18px;
+    display: none;
+    z-index: 1000;
+}
+
+/* カウンター */
+#stats {
+    position: fixed;
+    top: 70px;
+    left: 20px;
+    font-size: 20px;
+    background: rgba(0,0,0,0.6);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* ボタン共通 */
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* 開始ボタン */
+#startBtn {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    background: #00cc66;
+    color: white;
+}
+
+/* リセット */
+#resetBtn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: red;
+    color: white;
+}
+
+/* カメラ切替 */
+#switchCameraBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #007bff;
+    color: white;
+}
