@@ -1,5 +1,3 @@
-import vision from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js";
-
 let squatCount = 0;
 let jumpCount = 0;
 
@@ -8,21 +6,22 @@ let stageJump = "ground";
 
 let initialAnkleY = null;
 
+let currentFacing = "user"; // ← インカメラ
+let stream;
+
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const warning = document.getElementById("warning");
 
-let currentFacing = "user"; // ← インカメラか外カメラか
-let stream;
-
-// リセットボタン
 document.getElementById("resetBtn").onclick = () => {
     squatCount = 0;
     jumpCount = 0;
+    stageSquat = "up";
+    stageJump = "ground";
+    initialAnkleY = null;
 };
 
-// カメラ切替ボタン
 document.getElementById("switchCameraBtn").onclick = () => {
     currentFacing = currentFacing === "user" ? "environment" : "user";
     switchCamera();
@@ -37,14 +36,13 @@ function angle(a, b, c) {
     return Math.acos(dot / (mag1 * mag2 + 1e-6)) * (180 / Math.PI);
 }
 
-// カメラ初期化
 async function startCamera() {
     if (stream) {
         stream.getTracks().forEach(t => t.stop());
     }
 
     stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: currentFacing, width: 640, height: 480 }
+        video: { width: 640, height: 480, facingMode: currentFacing }
     });
 
     video.srcObject = stream;
@@ -58,12 +56,10 @@ async function startCamera() {
     });
 }
 
-// 切替
 async function switchCamera() {
     await startCamera();
 }
 
-// メイン
 async function main() {
     const visionObj = await vision;
 
@@ -72,7 +68,7 @@ async function main() {
             modelAssetPath:
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/pose_landmarker_heavy.task"
         },
-        runningMode: "video",
+        runningMode: "video"
     });
 
     await startCamera();
@@ -92,6 +88,7 @@ async function main() {
 
             if (!res.landmarks || res.landmarks.length === 0) {
                 warning.style.display = "block";
+                warning.innerText = "人が周りにいないことを確認してください";
                 requestAnimationFrame(loop);
                 return;
             }
@@ -100,11 +97,13 @@ async function main() {
 
             if (!isFullyVisible(lm)) {
                 warning.style.display = "block";
+                warning.innerText = "全身が映っていません";
                 requestAnimationFrame(loop);
                 return;
             }
             warning.style.display = "none";
 
+            // --- スクワット ---
             const L_hip = lm[23];
             const R_hip = lm[24];
             const L_knee = lm[25];
@@ -112,7 +111,6 @@ async function main() {
             const L_ankle = lm[27];
             const R_ankle = lm[28];
 
-            // スクワット判定（両脚）
             const L_angle = angle(L_hip, L_knee, L_ankle);
             const R_angle = angle(R_hip, R_knee, R_ankle);
 
@@ -122,7 +120,7 @@ async function main() {
                 stageSquat = "up";
             }
 
-            // ジャンプ判定（足首）
+            // --- ジャンプ ---
             const avgY = (L_ankle.y + R_ankle.y) / 2;
 
             if (initialAnkleY === null) initialAnkleY = avgY;
@@ -137,7 +135,7 @@ async function main() {
                 stageJump = "ground";
             }
 
-            // 骨格点だけ描画（軽量）
+            // 点描画（軽量）
             ctx.fillStyle = "lime";
             lm.forEach(p => {
                 ctx.beginPath();
@@ -149,7 +147,6 @@ async function main() {
             ctx.font = "28px sans-serif";
             ctx.fillText("Squat: " + squatCount, 20, 40);
             ctx.fillText("Jump: " + jumpCount, 20, 80);
-
         });
 
         requestAnimationFrame(loop);
