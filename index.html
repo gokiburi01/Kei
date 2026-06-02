@@ -1,108 +1,98 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>運動カウンター</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
-
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      overflow: hidden;
-      font-family: sans-serif;
-      color: white;
-    }
-
-    #loading {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: black;
-      font-size: 24px;
-    }
-
-    #warning {
-      position: fixed;
-      top: 10px;
-      width: 100%;
-      text-align: center;
-      color: red;
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    /* ★ 追加：安全警告文 */
-    #safeWarning {
-      position: fixed;
-      top: 55px;
-      width: 100%;
-      text-align: center;
-      color: yellow;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    #counter {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      font-size: 28px;
-      color: lime;
-    }
-
-    #jumpCounter {
-      position: fixed;
-      bottom: 60px;
-      left: 20px;
-      font-size: 28px;
-      color: cyan;
-    }
-
-    #resetBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 8px;
-    }
-
-    canvas {
-      width: 100vw;
-      height: 100vh;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集中力向上トレーニングアプリ</title>
+    <link rel="stylesheet" href="app.css">
+    <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
+    <!-- MoveNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 </head>
-
 <body>
-
-<div id="loading">ロード中...</div>
-
-<!-- 全身警告 -->
-<div id="warning"></div>
-
-<!-- ★ 追加：安全のための警告文 -->
-<div id="safeWarning">人が周りにいないことを確認して下さい</div>
-
-<div id="counter">スクワット：0</div>
-<div id="jumpCounter">ジャンプ：0</div>
-
-<button id="resetBtn">リセット</button>
-
-<video id="video" autoplay playsinline style="display:none;"></video>
-<canvas id="canvas"></canvas>
-
-<script src="app.js"></script>
-
+    <!-- ロード画面 -->
+    <div id="loadingScreen">
+        <h1>集中力向上トレーニングアプリ</h1>
+        <div id="loadingText">準備中...</div>
+    </div>
+    <!-- 初期設定 -->
+    <div id="setupScreen">
+        <h1>集中力向上トレーニングアプリ</h1>
+        <div class="inputGroup">
+            <label>身長(cm)</label>
+            <input type="number" id="heightInput" placeholder="170">
+        </div>
+        <div class="inputGroup">
+            <label>体重(kg)</label>
+            <input type="number" id="weightInput" placeholder="60">
+        </div>
+        <div class="inputGroup">
+            <label>年齢</label>
+            <input type="number" id="ageInput" placeholder="16">
+        </div>
+        <div class="inputGroup">
+            <label>性別</label>
+            <select id="genderInput">
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+            </select>
+        </div>
+        <button id="startBtn">
+            トレーニング開始
+        </button>
+    </div>
+    <!-- タイトル -->
+    <div id="title">
+        集中力向上トレーニングアプリ
+    </div>
+    <!-- 安全表示 -->
+    <div id="safety">
+        ⚠ 人が周りにいないことを確認してください
+    </div>
+    <!-- 警告 -->
+    <div id="warning"></div>
+    <!-- 情報パネル -->
+    <div id="cards">
+        <div class="card">
+            <h3>スクワット</h3>
+            <span id="sq">0</span>
+        </div>
+        <div class="card">
+            <h3>ジャンプ</h3>
+            <span id="jp">0</span>
+        </div>
+        <div class="card">
+            <h3>消費kcal</h3>
+            <span id="kcal">0</span>
+        </div>
+        <div class="card">
+            <h3>集中力スコア</h3>
+            <span id="score">0</span>
+        </div>
+    </div>
+    <!-- FPS -->
+    <div id="fps">
+        FPS :
+        <span id="fpsValue">0</span>
+    </div>
+    <!-- ボタン -->
+    <button id="resetBtn">
+        リセット
+    </button>
+    <button id="switchCameraBtn">
+        カメラ切替
+    </button>
+    <!-- カメラ -->
+    <video
+        id="video"
+        autoplay
+        playsinline
+        muted
+        style="display:none;">
+    </video>
+    <!-- 描画 -->
+    <canvas id="canvas"></canvas>
+    <script src="app.js"></script>
 </body>
 </html>
