@@ -1,79 +1,208 @@
-/* 全体 */
-body {
-    margin: 0;
-    background: linear-gradient(135deg, #000000, #111);
-    color: white;
-    font-family: "Segoe UI", sans-serif;
-    overflow: hidden;
+/* =========================
+   全体
+========================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
-
-/* canvas */
-canvas {
-    width: 100vw;
-    height: 100vh;
-    display: block;
+body{
+    background:#000;
+    color:#fff;
+    font-family:"Segoe UI",sans-serif;
+    overflow:hidden;
 }
-
-/* 上部メッセージ */
-#warning {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 0, 0, 0.8);
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 18px;
-    display: none;
-    z-index: 1000;
+/* =========================
+   カメラ描画
+========================= */
+canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    display:block;
 }
-
-/* カウンター */
-#stats {
-    position: fixed;
-    top: 70px;
-    left: 20px;
-    font-size: 20px;
-    background: rgba(0,0,0,0.6);
-    padding: 10px;
-    border-radius: 10px;
+/* =========================
+   初期設定画面
+========================= */
+#setupScreen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:rgba(0,0,0,0.95);
+    z-index:9999;
 }
-
-/* ボタン共通 */
-button {
-    border: none;
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-size: 16px;
-    cursor: pointer;
-    z-index: 1000;
+.setupCard{
+    width:320px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:25px;
+    border-radius:20px;
+    background:#111;
+    border:1px solid #00ffff;
 }
-
-/* 開始ボタン */
-#startBtn {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 22px;
-    background: #00cc66;
-    color: white;
+.setupCard h1{
+    text-align:center;
+    color:#00ffff;
 }
-
-/* リセット */
-#resetBtn {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background: red;
-    color: white;
+.description{
+    text-align:center;
+    color:#aaa;
+    margin-bottom:10px;
 }
-
-/* カメラ切替 */
-#switchCameraBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #007bff;
-    color: white;
+.setupCard label{
+    font-size:14px;
+}
+.setupCard input,
+.setupCard select{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#222;
+    color:white;
+}
+#startBtn{
+    margin-top:10px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#00aa66;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+}
+#startBtn:hover{
+    opacity:0.9;
+}
+/* =========================
+   ロード画面
+========================= */
+#loadingScreen{
+    position:fixed;
+    inset:0;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    background:black;
+    z-index:9998;
+}
+.loadingBox{
+    text-align:center;
+}
+.loadingBox h2{
+    color:#00ffff;
+    margin-bottom:10px;
+}
+#loadingText{
+    color:#ccc;
+}
+/* =========================
+   注意メッセージ
+========================= */
+#safetyMessage{
+    position:fixed;
+    top:10px;
+    width:100%;
+    text-align:center;
+    color:gold;
+    font-size:18px;
+    z-index:1000;
+    text-shadow:0 0 8px black;
+}
+/* =========================
+   警告
+========================= */
+#warning{
+    position:fixed;
+    top:45px;
+    left:50%;
+    transform:translateX(-50%);
+    background:red;
+    color:white;
+    padding:10px 20px;
+    border-radius:10px;
+    font-weight:bold;
+    z-index:1000;
+}
+/* =========================
+   ステータス
+========================= */
+#statsPanel{
+    position:fixed;
+    left:15px;
+    top:90px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:1000;
+}
+.statCard{
+    width:180px;
+    padding:12px;
+    border-radius:15px;
+    background:rgba(0,0,0,0.65);
+    backdrop-filter:blur(5px);
+    border:1px solid rgba(255,255,255,0.15);
+}
+.label{
+    font-size:14px;
+    color:#aaa;
+}
+.value{
+    font-size:30px;
+    font-weight:bold;
+    color:#00ff99;
+}
+/* =========================
+   FPS
+========================= */
+#fpsPanel{
+    position:fixed;
+    right:15px;
+    top:15px;
+    padding:10px 15px;
+    border-radius:12px;
+    background:rgba(0,0,0,0.6);
+    z-index:1000;
+}
+/* =========================
+   リセット
+========================= */
+#resetBtn{
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    padding:12px 20px;
+    border:none;
+    border-radius:12px;
+    background:#d60000;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    z-index:1000;
+}
+#resetBtn:hover{
+    opacity:0.9;
+}
+/* =========================
+   スマホ対応
+========================= */
+@media(max-width:768px){
+    .setupCard{
+        width:90%;
+    }
+    .statCard{
+        width:150px;
+    }
+    .value{
+        font-size:24px;
+    }
+    #fpsPanel{
+        font-size:14px;
+    }
 }
