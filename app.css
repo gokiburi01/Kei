@@ -1,11 +1,14 @@
 /* =========================
-   共通
+   リセット
 ========================= */
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
 }
+/* =========================
+   全体
+========================= */
 body{
     background:#000;
     color:#fff;
@@ -13,11 +16,12 @@ body{
     overflow:hidden;
 }
 /* =========================
-   カメラ描画
+   Canvas
 ========================= */
-canvas{
+#canvas{
     position:fixed;
-    inset:0;
+    top:0;
+    left:0;
     width:100vw;
     height:100vh;
     display:block;
@@ -31,35 +35,37 @@ canvas{
     display:flex;
     justify-content:center;
     align-items:center;
-    background:rgba(0,0,0,0.95);
+    background:rgba(0,0,0,.95);
     z-index:9999;
 }
 .setupCard{
-    width:340px;
-    padding:25px;
-    border-radius:20px;
+    width:360px;
     background:#111;
     border:1px solid #00ffff;
+    border-radius:20px;
+    padding:25px;
     display:flex;
     flex-direction:column;
     gap:12px;
-    box-shadow:0 0 20px rgba(0,255,255,.25);
+    box-shadow:
+    0 0 20px rgba(0,255,255,.2);
 }
 .setupCard h1{
     text-align:center;
     color:#00ffff;
+    margin-bottom:5px;
 }
 .description{
-    color:#ccc;
     text-align:center;
-    margin-bottom:5px;
+    color:#aaa;
+    margin-bottom:10px;
 }
 .setupCard label{
     font-size:14px;
+    color:#ddd;
 }
 .setupCard input,
 .setupCard select{
-    width:100%;
     padding:12px;
     border:none;
     border-radius:10px;
@@ -71,6 +77,9 @@ canvas{
 .setupCard select:focus{
     outline:1px solid #00ffff;
 }
+/* =========================
+   開始ボタン
+========================= */
 #startBtn{
     margin-top:10px;
     padding:14px;
@@ -83,6 +92,7 @@ canvas{
     transition:.2s;
 }
 #startBtn:hover{
+    transform:scale(1.02);
     opacity:.9;
 }
 /* =========================
@@ -94,7 +104,7 @@ canvas{
     display:none;
     justify-content:center;
     align-items:center;
-    background:#000;
+    background:black;
     z-index:9998;
 }
 .loadingBox{
@@ -116,16 +126,18 @@ canvas{
     width:100%;
     text-align:center;
     color:gold;
+    font-size:18px;
     font-weight:bold;
+    text-shadow:
+    0 0 10px black;
     z-index:1000;
-    text-shadow:0 0 10px #000;
 }
 /* =========================
-   警告
+   警告表示
 ========================= */
 #warning{
     position:fixed;
-    top:45px;
+    top:50px;
     left:50%;
     transform:translateX(-50%);
     background:#d60000;
@@ -140,8 +152,8 @@ canvas{
 ========================= */
 #statsPanel{
     position:fixed;
+    top:100px;
     left:15px;
-    top:90px;
     display:flex;
     flex-direction:column;
     gap:10px;
@@ -149,11 +161,14 @@ canvas{
 }
 .statCard{
     width:180px;
-    padding:12px;
+    background:
+    rgba(0,0,0,.65);
+    backdrop-filter:
+    blur(5px);
+    border:
+    1px solid rgba(255,255,255,.15);
     border-radius:15px;
-    background:rgba(0,0,0,.65);
-    border:1px solid rgba(255,255,255,.15);
-    backdrop-filter:blur(5px);
+    padding:12px;
 }
 .label{
     color:#aaa;
@@ -173,7 +188,8 @@ canvas{
     right:15px;
     padding:10px 15px;
     border-radius:12px;
-    background:rgba(0,0,0,.6);
+    background:
+    rgba(0,0,0,.65);
     z-index:1000;
 }
 /* =========================
@@ -181,8 +197,8 @@ canvas{
 ========================= */
 #resetBtn{
     position:fixed;
-    left:20px;
     bottom:20px;
+    left:20px;
     padding:12px 20px;
     border:none;
     border-radius:12px;
@@ -191,9 +207,10 @@ canvas{
     font-size:16px;
     cursor:pointer;
     z-index:1000;
+    transition:.2s;
 }
 #resetBtn:hover{
-    opacity:.9;
+    transform:scale(1.05);
 }
 /* =========================
    スマホ対応
