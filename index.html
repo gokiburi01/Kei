@@ -1,168 +1,107 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>集中力向上トレーニングアプリ</title>
-<link rel="stylesheet" href="app.css">
-<!-- TensorFlow.js -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-<!-- MoveNet -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集中力向上トレーニングアプリ</title>
+    <link rel="stylesheet" href="app.css">
+    <!-- TensorFlow -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <!-- MoveNet -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 </head>
 <body>
-<!-- =========================
-     初期設定画面
-========================= -->
-<div id="setupScreen">
-    <div class="setupCard">
-        <h1>集中力向上トレーニングアプリ</h1>
-        <p class="description">
-            スクワット・ジャンプ回数を計測し、
-            消費カロリーを表示します
-        </p>
-        <label for="heightInput">
-            身長(cm)
-        </label>
-        <input
-            type="number"
-            id="heightInput"
-            placeholder="170"
-            min="50"
-            max="250"
-        >
-        <label for="weightInput">
-            体重(kg)
-        </label>
-        <input
-            type="number"
-            id="weightInput"
-            placeholder="60"
-            min="20"
-            max="200"
-        >
-        <label for="genderInput">
-            性別
-        </label>
-        <select id="genderInput">
-            <option value="male">
-                男性
-            </option>
-            <option value="female">
-                女性
-            </option>
-            <option value="other">
-                その他
-            </option>
-        </select>
-        <label for="ageGroup">
-            年齢層
-        </label>
-        <select id="ageGroup">
-            <option value="10-20">
-                10〜20代
-            </option>
-            <option value="30-40">
-                30〜40代
-            </option>
-            <option value="50-60">
-                50〜60代
-            </option>
-            <option value="70-80">
-                70〜80代
-            </option>
-            <option value="90-100">
-                90〜100代
-            </option>
-        </select>
-        <button id="startBtn">
-            開始
-        </button>
-    </div>
-</div>
-<!-- =========================
-     ロード画面
-========================= -->
-<div id="loadingScreen">
-    <div class="loadingBox">
-        <h2>モデル読込中...</h2>
-        <div id="loadingText">
-            準備中...
+    <!-- 初期設定 -->
+    <div id="setupScreen">
+        <div class="setupCard">
+            <h1>集中力向上トレーニングアプリ</h1>
+            <p class="description">
+                スクワット・ジャンプ回数を測定します
+            </p>
+            <label>身長(cm)</label>
+            <input type="number" id="heightInput" value="170">
+            <label>体重(kg)</label>
+            <input type="number" id="weightInput" value="60">
+            <label>性別</label>
+            <select id="genderInput">
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
+            </select>
+            <label>年齢層</label>
+            <select id="ageGroup">
+                <option value="10-20">
+                    10〜20代
+                </option>
+                <option value="30-40">
+                    30〜40代
+                </option>
+                <option value="50-60">
+                    50〜60代
+                </option>
+                <option value="70-80">
+                    70〜80代
+                </option>
+                <option value="90-100">
+                    90〜100代
+                </option>
+            </select>
+            <button id="startBtn">
+                開始
+            </button>
         </div>
     </div>
-</div>
-<!-- =========================
-     安全確認
-========================= -->
-<div id="safetyMessage">
-    ⚠ 人が周りにいないことを確認してください
-</div>
-<!-- =========================
-     警告表示
-========================= -->
-<div id="warning"></div>
-<!-- =========================
-     ステータスパネル
-========================= -->
-<div id="statsPanel">
-    <div class="statCard">
-        <div class="label">
-            スクワット
-        </div>
-        <div id="sq" class="value">
-            0
+    <!-- ロード画面 -->
+    <div id="loadingScreen">
+        <div class="loadingBox">
+            <h2>ロード中...</h2>
+            <div id="loadingText">
+                モデル準備中
+            </div>
         </div>
     </div>
-    <div class="statCard">
-        <div class="label">
-            ジャンプ
+    <!-- 安全メッセージ -->
+    <div id="safetyMessage">
+        ⚠ 人が周りにいないことを確認してください
+    </div>
+    <!-- 警告 -->
+    <div id="warning"></div>
+    <!-- ステータス -->
+    <div id="statsPanel">
+        <div class="statCard">
+            <div class="label">スクワット</div>
+            <div id="sq" class="value">0</div>
         </div>
-        <div id="jp" class="value">
-            0
+        <div class="statCard">
+            <div class="label">ジャンプ</div>
+            <div id="jp" class="value">0</div>
+        </div>
+        <div class="statCard">
+            <div class="label">消費kcal</div>
+            <div id="kcal" class="value">0.0</div>
         </div>
     </div>
-    <div class="statCard">
-        <div class="label">
-            消費kcal
-        </div>
-        <div id="kcal" class="value">
-            0
-        </div>
+    <!-- FPS -->
+    <div id="fpsPanel">
+        FPS :
+        <span id="fpsValue">0</span>
     </div>
-</div>
-<!-- =========================
-     FPS表示
-========================= -->
-<div id="fpsPanel">
-    FPS :
-    <span id="fpsValue">
-        0
-    </span>
-</div>
-<!-- =========================
-     リセット
-========================= -->
-<button id="resetBtn">
-    リセット
-</button>
-<!-- =========================
-     カメラ
-========================= -->
-<video
-    id="video"
-    autoplay
-    playsinline
-    muted
-    style="display:none;"
-></video>
-<!-- =========================
-     描画用Canvas
-========================= -->
-<canvas id="canvas"></canvas>
-<!-- =========================
-     メイン処理
-========================= -->
-<script src="app.js"></script>
+    <!-- リセット -->
+    <button id="resetBtn">
+        リセット
+    </button>
+    <!-- カメラ -->
+    <video
+        id="video"
+        autoplay
+        playsinline
+        muted
+        style="display:none;">
+    </video>
+    <!-- 描画 -->
+    <canvas id="canvas"></canvas>
+    <!-- メイン処理 -->
+    <script src="app.js"></script>
 </body>
 </html>
