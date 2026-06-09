@@ -1,15 +1,20 @@
-/* =====================================
+/* ===================================
    Movement App
-   Complete CSS
-===================================== */
-/* ---------- リセット ---------- */
+   Futuristic UI
+=================================== */
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
 }
-/* ---------- 全体 ---------- */
+
 body{
+
+    font-family:
+    "Segoe UI",
+    sans-serif;
+
     background:
     linear-gradient(
         135deg,
@@ -17,256 +22,452 @@ body{
         #07111f,
         #000000
     );
+
     color:white;
-    font-family:
-    "Segoe UI",
-    sans-serif;
+
     overflow:hidden;
 }
-/* ---------- Canvas ---------- */
+
+/* ==========================
+   Canvas
+========================== */
+
 #canvas{
+
     position:fixed;
+
     top:0;
     left:0;
+
     width:100vw;
     height:100vh;
-    display:block;
+
     z-index:1;
 }
-/* =====================================
-   初期設定画面
-===================================== */
+
+/* ==========================
+   初期設定
+========================== */
+
 #setupScreen{
+
     position:fixed;
+
     inset:0;
+
     display:flex;
+
     justify-content:center;
     align-items:center;
+
     background:
     rgba(0,0,0,.92);
-    backdrop-filter:
-    blur(12px);
-    z-index:9999;
+
+    z-index:10000;
 }
+
 .setupCard{
-    width:380px;
+
+    width:420px;
+
     max-width:95%;
+
     padding:30px;
+
     border-radius:25px;
+
     background:
-    rgba(15,20,30,.95);
+    rgba(10,15,25,.95);
+
     border:
-    1px solid rgba(0,255,255,.3);
+    1px solid
+    rgba(0,255,255,.25);
+
     box-shadow:
-    0 0 30px rgba(0,255,255,.15);
+    0 0 25px
+    rgba(0,255,255,.2);
+
     display:flex;
+
     flex-direction:column;
+
     gap:12px;
 }
+
 .setupCard h1{
+
     text-align:center;
-    font-size:28px;
+
     color:#00ffff;
-    margin-bottom:5px;
-}
-.description{
-    text-align:center;
-    color:#cccccc;
+
+    font-size:28px;
+
     margin-bottom:10px;
 }
-.setupCard label{
-    color:#dddddd;
-    font-size:14px;
+
+.description{
+
+    text-align:center;
+
+    color:#bbbbbb;
+
+    margin-bottom:10px;
 }
+
+.setupCard label{
+
+    font-size:14px;
+
+    color:#dddddd;
+}
+
 .setupCard input,
 .setupCard select{
+
+    width:100%;
+
     padding:12px;
+
     border:none;
+
     border-radius:12px;
+
     background:#1c2430;
+
     color:white;
+
     font-size:16px;
 }
+
 .setupCard input:focus,
 .setupCard select:focus{
+
     outline:none;
+
     box-shadow:
-    0 0 10px #00ffff;
+    0 0 10px
+    #00ffff;
 }
-/* ---------- 開始 ---------- */
+
+/* ==========================
+   開始ボタン
+========================== */
+
 #startBtn{
+
     margin-top:10px;
+
     padding:15px;
+
     border:none;
+
     border-radius:15px;
-    font-size:18px;
-    font-weight:bold;
-    cursor:pointer;
-    color:white;
+
     background:
     linear-gradient(
         135deg,
         #00cc88,
         #00aa66
     );
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
     transition:.25s;
 }
+
 #startBtn:hover{
-    transform:scale(1.03);
+
+    transform:scale(1.05);
 }
-/* =====================================
+
+/* ==========================
    ロード画面
-===================================== */
+========================== */
+
 #loadingScreen{
+
     position:fixed;
+
     inset:0;
+
     display:none;
+
     justify-content:center;
     align-items:center;
+
     background:black;
-    z-index:9998;
+
+    z-index:9999;
 }
+
 .loadingBox{
+
     text-align:center;
 }
+
 .loadingBox h2{
+
     color:#00ffff;
+
     margin-bottom:15px;
 }
+
 #loadingText{
+
     color:#cccccc;
-    font-size:18px;
 }
-/* =====================================
-   安全表示
-===================================== */
+
+/* ==========================
+   安全メッセージ
+========================== */
+
 #safetyMessage{
+
     position:fixed;
-    top:12px;
+
+    top:10px;
+
     width:100%;
+
     text-align:center;
+
     color:#ffd700;
+
     font-weight:bold;
-    font-size:18px;
+
     z-index:1000;
+
     text-shadow:
     0 0 10px black;
 }
-/* =====================================
+
+/* ==========================
    警告
-===================================== */
+========================== */
+
 #warning{
+
     position:fixed;
-    top:50px;
+
+    top:45px;
+
     left:50%;
-    transform:translateX(-50%);
+
+    transform:
+    translateX(-50%);
+
     background:
     rgba(255,0,0,.85);
+
     color:white;
+
     padding:12px 20px;
+
     border-radius:12px;
+
     font-weight:bold;
+
     z-index:1000;
-    text-align:center;
 }
-/* =====================================
+
+/* ==========================
    ステータス
-===================================== */
+========================== */
+
 #statsPanel{
+
     position:fixed;
-    top:100px;
+
+    top:90px;
+
     left:15px;
+
     display:flex;
+
     flex-direction:column;
+
     gap:10px;
+
     z-index:1000;
 }
+
 .statCard{
-    width:190px;
+
+    width:180px;
+
     padding:14px;
+
     border-radius:18px;
+
     background:
     rgba(0,0,0,.65);
-    border:
-    1px solid rgba(255,255,255,.1);
+
     backdrop-filter:
-    blur(6px);
+    blur(8px);
+
+    border:
+    1px solid
+    rgba(255,255,255,.08);
 }
+
 .label{
-    color:#bbbbbb;
+
+    color:#cccccc;
+
     font-size:14px;
 }
+
 .value{
+
     color:#00ff99;
+
     font-size:30px;
+
     font-weight:bold;
-    margin-top:4px;
 }
-/* =====================================
+
+/* ==========================
    FPS
-===================================== */
+========================== */
+
 #fpsPanel{
+
     position:fixed;
+
     top:15px;
+
     right:15px;
+
     padding:10px 16px;
+
     border-radius:12px;
+
     background:
     rgba(0,0,0,.7);
+
     backdrop-filter:
     blur(5px);
+
     z-index:1000;
+
     font-weight:bold;
 }
-/* =====================================
+
+/* ==========================
    リセット
-===================================== */
+========================== */
+
 #resetBtn{
+
     position:fixed;
+
     bottom:20px;
+
     left:20px;
-    border:none;
-    border-radius:14px;
+
     padding:14px 20px;
-    font-size:16px;
-    font-weight:bold;
-    color:white;
-    cursor:pointer;
+
+    border:none;
+
+    border-radius:14px;
+
     background:
     linear-gradient(
         135deg,
         #ff4444,
         #cc0000
     );
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
     z-index:1000;
+
     transition:.25s;
 }
+
 #resetBtn:hover{
+
     transform:scale(1.05);
 }
-/* =====================================
-   スマホ対応
-===================================== */
-@media(max-width:768px){
+
+/* ==========================
+   スマホ・iPad対応
+========================== */
+
+@media (max-width:768px){
+
     .setupCard{
+
         width:92%;
     }
+
     .setupCard h1{
+
         font-size:24px;
     }
-    #statsPanel{
-        top:95px;
-    }
+
     .statCard{
+
         width:160px;
     }
+
     .value{
+
         font-size:24px;
     }
+
+    #warning{
+
+        width:90%;
+
+        text-align:center;
+    }
+
     #fpsPanel{
+
         font-size:14px;
     }
-    #warning{
-        width:90%;
+}
+
+/* ==========================
+   アニメーション
+========================== */
+
+@keyframes glow{
+
+    0%{
+        box-shadow:
+        0 0 10px
+        rgba(0,255,255,.2);
     }
+
+    50%{
+        box-shadow:
+        0 0 25px
+        rgba(0,255,255,.5);
+    }
+
+    100%{
+        box-shadow:
+        0 0 10px
+        rgba(0,255,255,.2);
+    }
+}
+
+.setupCard{
+
+    animation:
+    glow 3s infinite;
 }
