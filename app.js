@@ -267,15 +267,15 @@ function drawSkeleton(kp){
 
             ctx.beginPath();
 
-            ctx.moveTo(
-                kp[a].x,
-                kp[a].y
-            );
+           ctx.moveTo(
+    canvas.width - kp[a].x,
+    kp[a].y
+);
 
-            ctx.lineTo(
-                kp[b].x,
-                kp[b].y
-            );
+ctx.lineTo(
+    canvas.width - kp[b].x,
+    kp[b].y
+);
 
             ctx.stroke();
         }
