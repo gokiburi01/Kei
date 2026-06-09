@@ -575,9 +575,12 @@ async function loop(){
 
         ctx.save();
 
-ctx.translate(canvas.width, 0);
+ctx.translate(
+    canvas.width,
+    0
+);
 
-ctx.scale(-1, 1);
+ctx.scale(-1,1);
 
 ctx.drawImage(
     video,
