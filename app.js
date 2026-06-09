@@ -573,16 +573,21 @@ async function loop(){
         // 映像表示
         // 左右反転なし
 
-        ctx.drawImage(
+        ctx.save();
 
-            video,
+ctx.translate(canvas.width, 0);
 
-            0,
-            0,
+ctx.scale(-1, 1);
 
-            canvas.width,
-            canvas.height
-        );
+ctx.drawImage(
+    video,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+);
+
+ctx.restore();
 
         const poses =
         await detector.estimatePoses(
