@@ -169,6 +169,18 @@ document.getElementById("resultKcal");
 const restartBtn =
 document.getElementById("restartBtn");
 
+const beforeMemoryResultScreen =
+document.getElementById("beforeMemoryResultScreen");
+
+const beforeMemoryResultRate =
+document.getElementById("beforeMemoryResultRate");
+
+const beforeMemoryResultCorrect =
+document.getElementById("beforeMemoryResultCorrect");
+
+const startTrainingFromMemoryResultBtn =
+document.getElementById("startTrainingFromMemoryResultBtn");
+
 
 
 // ======================================
