@@ -1742,6 +1742,13 @@ function calculateImproveRate(){
 // Part2 の submitMemoryAnswer() から呼ばれる
 // ======================================
 
+function showBeforeMemoryResult(){
+
+    beforeMemoryResultRate.innerText = beforeRate;
+    beforeMemoryResultCorrect.innerText = beforeCorrectCount;
+
+    showScreen("beforeMemoryResult");
+}
 function finishAfterMemoryTest(){
 
     clearAllTimers();
