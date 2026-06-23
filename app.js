@@ -882,20 +882,21 @@ function submitMemoryAnswer(giveUp = false){
 
     if(memoryPhase === "before"){
 
-        beforeAnswer = finalAnswer;
+    beforeAnswer = finalAnswer;
 
-        beforeCorrectCount =
-        countCorrectDigits(
-            beforeAnswer,
-            memoryDigits
-        );
+    beforeCorrectCount =
+    countCorrectDigits(
+        beforeAnswer,
+        memoryDigits
+    );
 
-        beforeRate =
-        calcRate(beforeCorrectCount);
+    beforeRate =
+    calcRate(beforeCorrectCount);
 
-        // 次はロード画面 → 運動開始
-        beginTrainingPreparation();
-    }
+    // ★ すぐ運動開始せず、
+    //    いったん結果画面を表示する
+    showBeforeMemoryResult();
+}
     else{
 
         afterAnswer = finalAnswer;
