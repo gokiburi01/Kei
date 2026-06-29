@@ -26,7 +26,7 @@ const MEMORY_SHOW_SEC = 15;
 const TRAINING_TIME_MS = 20 * 60 * 1000;
 
 // 記憶数字の桁数
-const MEMORY_DIGITS_LENGTH = 10;
+const MEMORY_DIGITS_LENGTH = 20;
 
 // カメラ設定
 const CAMERA_WIDTH = 1280;
