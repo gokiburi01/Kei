@@ -1,350 +1,728 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <title>集中力向上トレーニングアプリ</title>
+<meta charset="UTF-8">
 
-    <link rel="stylesheet" href="app.css">
+<meta name="viewport"
+content="width=device-width,initial-scale=1.0">
 
-    <!-- TensorFlow -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+<title>
+集中力向上トレーニングアプリ
+</title>
 
-    <!-- MoveNet -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+<link rel="stylesheet" href="app.css">
+
+<!-- TensorFlow -->
+<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+
+<!-- MoveNet -->
+<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
 </head>
+
 <body>
 
-    <!-- =========================================
-         1. 初期設定画面
-    ========================================== -->
-    <div id="setupScreen" class="screen">
-        <div class="setupCard">
-            <h1 class="appTitle">集中力向上トレーニングアプリ</h1>
+<!-- ===========================
+初期設定画面
+=========================== -->
 
-            <p class="description">
-                スクワット・ジャンプと記憶テストを組み合わせて、
-                運動前後の記憶成績を比較します
-            </p>
+<div id="setupScreen" class="screen">
 
-            <div class="formGroup">
-                <label for="heightInput">身長(cm)</label>
-                <input
-                    type="number"
-                    id="heightInput"
-                    value="170"
-                    min="80"
-                    max="250">
-            </div>
+<div class="setupCard">
 
-            <div class="formGroup">
-                <label for="weightInput">体重(kg)</label>
-                <input
-                    type="number"
-                    id="weightInput"
-                    value="60"
-                    min="20"
-                    max="200">
-            </div>
+<h1 class="appTitle">
+集中力向上トレーニングアプリ
+</h1>
 
-            <div class="formGroup">
-                <label for="genderInput">性別</label>
-                <select id="genderInput">
-                    <option value="male">男性</option>
-                    <option value="female">女性</option>
-                    <option value="other">その他</option>
-                </select>
-            </div>
+<p class="description">
 
-            <div class="formGroup">
-                <label for="ageGroup">年齢層</label>
-                <select id="ageGroup">
-                    <option value="10-20">10〜20代</option>
-                    <option value="30-40">30〜40代</option>
-                    <option value="50-60">50〜60代</option>
-                    <option value="70-80">70〜80代</option>
-                    <option value="90-100">90〜100代</option>
-                </select>
-            </div>
+20分間の運動前後で
+記憶力の変化を測定します。
 
-            <button id="startBtn" class="primaryBtn">
-                開始
-            </button>
-        </div>
+</p>
+
+<div class="formGroup">
+
+<label>
+身長(cm)
+</label>
+
+<input
+id="heightInput"
+type="number"
+placeholder="170">
+
+</div>
+
+<div class="formGroup">
+
+<label>
+体重(kg)
+</label>
+
+<input
+id="weightInput"
+type="number"
+placeholder="60">
+
+</div>
+
+<div class="formGroup">
+
+<label>
+性別
+</label>
+
+<select id="genderInput">
+
+<option value="male">
+男性
+</option>
+
+<option value="female">
+女性
+</option>
+
+<option value="other">
+その他
+</option>
+
+</select>
+
+</div>
+
+<div class="formGroup">
+
+<label>
+年齢層
+</label>
+
+<select id="ageGroup">
+
+<option value="10-20">
+10〜20代
+</option>
+
+<option value="30-40">
+30〜40代
+</option>
+
+<option value="50-60">
+50〜60代
+</option>
+
+<option value="70-80">
+70〜80代
+</option>
+
+<option value="90-100">
+90〜100代
+</option>
+
+<option value="other">
+その他
+</option>
+
+</select>
+
+</div>
+
+<button
+id="startBtn"
+class="primaryBtn">
+
+開始
+
+</button>
+
+</div>
+
+</div>
+
+<!-- ===========================
+ロード画面
+=========================== -->
+
+<div
+id="loadingScreen"
+class="screen hidden">
+
+<div class="loadingBox">
+
+<h2>
+
+ロード中...
+
+</h2>
+
+<p id="loadingText">
+
+MoveNetを準備しています...
+
+</p>
+
+</div>
+
+</div>
+
+<!-- ===========================
+10秒カウントダウン
+=========================== -->
+
+<div
+id="countdownScreen"
+class="screen hidden">
+
+<div class="countdownCard">
+
+<div class="countdownMessage">
+
+ランダムな数字を
+覚えてもらいます
+
+</div>
+
+<div
+id="countdownNumber"
+class="countdownNumber">
+
+10
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ===========================
+20桁記憶テスト
+=========================== -->
+
+<div
+id="memoryScreen"
+class="screen hidden">
+
+<div class="memoryCard">
+
+<h2 class="memoryTitle">
+
+20桁の数字を
+15秒で覚えてください
+
+</h2>
+
+<div
+id="memoryDigits"
+class="memoryDigits">
+
+12345678901234567890
+
+</div>
+
+<div
+id="memoryTimer"
+class="memoryTimer">
+
+15
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ===========================
+回答画面
+=========================== -->
+
+<div
+id="answerScreen"
+class="screen hidden">
+
+<div class="answerCard">
+
+<h2 class="answerTitle">
+
+覚えている数字を
+入力してください
+
+</h2>
+
+<input
+
+id="memoryAnswerInput"
+
+class="memoryAnswerInput"
+
+type="text"
+
+maxlength="20"
+
+inputmode="numeric"
+
+autocomplete="off">
+
+<div class="answerButtons">
+
+<button
+
+id="submitAnswer"
+
+class="primaryBtn">
+
+回答する
+
+</button>
+
+<button
+
+id="giveUpBtn"
+
+class="secondaryBtn">
+
+ギブアップ
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ===========================
+運動前結果
+=========================== -->
+
+<div
+id="beforeMemoryResultScreen"
+class="screen hidden">
+
+<div class="memoryResultCard">
+
+<h2>
+
+運動前記憶テスト結果
+
+</h2>
+
+<p class="memoryResultMain">
+
+あなたは
+
+<span id="beforeRate">
+
+0
+
+</span>
+
+%
+
+覚えることができました！
+
+</p>
+
+<p class="memoryResultSub">
+
+正解数
+
+<span id="beforeCorrect">
+
+0 / 20
+
+</span>
+
+</p>
+
+<button
+
+id="startTrainingBtn"
+
+class="primaryBtn">
+
+20分間の運動を開始
+
+</button>
+
+</div>
+
+</div>
+<!-- ===========================
+運動画面
+=========================== -->
+
+<div
+id="trainingScreen"
+class="screen hidden trainingScreen">
+
+    <!-- カメラ -->
+    <video
+        id="video"
+        autoplay
+        playsinline
+        muted
+        disablePictureInPicture
+        style="display:none;">
+    </video>
+
+    <!-- 骨格描画 -->
+    <canvas
+        id="canvas"
+        willReadFrequently="true">
+    </canvas>
+
+    <!-- 安全メッセージ -->
+    <div
+        id="safetyMessage"
+        class="safetyMessage">
+
+        ⚠ 周囲に人や障害物がないことを確認してください
+
     </div>
 
+    <!-- 警告 -->
+    <div
+        id="warning"
+        class="warning">
 
-
-    <!-- =========================================
-         2. ロード画面
-    ========================================== -->
-    <div id="loadingScreen" class="screen hidden">
-        <div class="loadingBox">
-            <h2>ロード中...</h2>
-            <div id="loadingText">モデル準備中</div>
-        </div>
     </div>
 
+    <!-- 現在の運動 -->
+    <div id="exercisePanel">
 
+        <div class="exerciseTitle">
 
-    <!-- =========================================
-         3. 記憶テスト前カウントダウン画面
-    ========================================== -->
-    <div id="countdownScreen" class="screen hidden">
-        <div class="countdownCard">
-            <div id="countdownMessage" class="countdownMessage">
-                ランダムな数字を覚えてもらいます
-            </div>
+            現在の運動
 
-            <div id="countdownNumber" class="countdownNumber">
-                10
-            </div>
         </div>
+
+        <div id="exerciseName">
+
+            エアウォーキング
+
+        </div>
+
+        <div id="exerciseTarget">
+
+            残り40秒
+
+        </div>
+
     </div>
 
+    <!-- 運動進行状況 -->
+    <div id="trainingProgress">
 
+        <div class="progressTitle">
 
-    <!-- =========================================
-         4. 数字表示画面（15秒）
-    ========================================== -->
-    <div id="memoryScreen" class="screen hidden">
-        <div class="memoryCard">
-            <h2 class="memoryTitle">この数字を覚えてください</h2>
+            運動進行状況
 
-            <div id="memoryDigitsText" class="memoryDigits">
-                1234567890
-            </div>
-
-            <div id="memoryTimerText" class="memoryTimer">
-                残り 15 秒
-            </div>
         </div>
+
+        <div id="progressText">
+
+            1 / 20 セット
+
+        </div>
+
     </div>
 
+    <!-- ステータス -->
+    <div
+        id="statsPanel"
+        class="statsPanel">
 
+        <div class="statCard">
 
-    <!-- =========================================
-         5. 回答画面
-    ========================================== -->
-    <div id="answerScreen" class="screen hidden">
-        <div class="answerCard">
-            <h2 id="answerTitle" class="answerTitle">
-                先ほどの20桁の数字を入力してください
-            </h2>
-
-            <input
-                type="text"
-                id="memoryAnswerInput"
-                class="memoryAnswerInput"
-                inputmode="numeric"
-                autocomplete="off"
-                maxlength="20"
-                placeholder="数字を入力">
-
-            <div class="answerButtons">
-                <button id="submitAnswerBtn" class="primaryBtn">
-                    決定
-                </button>
-
-                <button id="giveUpBtn" class="secondaryBtn">
-                    ギブアップ
-                </button>
+            <div class="label">
+                スクワット
             </div>
+
+            <div
+                id="sq"
+                class="value">
+
+                0
+
+            </div>
+
         </div>
+
+        <div class="statCard">
+
+            <div class="label">
+                ジャンプ
+            </div>
+
+            <div
+                id="jp"
+                class="value">
+
+                0
+
+            </div>
+
+        </div>
+
+        <div class="statCard">
+
+            <div class="label">
+                消費kcal
+            </div>
+
+            <div
+                id="kcal"
+                class="value">
+
+                0.0
+
+            </div>
+
+        </div>
+
     </div>
 
+    <!-- FPS -->
+    <div
+        id="fpsPanel"
+        class="fpsPanel">
 
+        FPS :
+        <span id="fpsValue">
 
-    <!-- =========================================
-         6. 運動前 記憶テスト結果画面
-    ========================================== -->
-    <div id="beforeMemoryResultScreen" class="screen hidden">
-        <div class="memoryResultCard">
-            <h2>運動前 記憶テスト結果</h2>
+            0
 
-            <p class="memoryResultMain">
-                あなたは
-                <span id="beforeMemoryResultRate">0</span>%
-                覚えることができました
-            </p>
+        </span>
 
-            <p class="memoryResultSub">
-                正解数：
-                <span id="beforeMemoryResultCorrect">0</span> / 10
-            </p>
-
-            <button
-                id="startTrainingFromMemoryResultBtn"
-                class="primaryBtn">
-                運動を開始する
-            </button>
-        </div>
     </div>
 
+    <!-- 最初に戻る -->
+    <button
+        id="resetBtn"
+        class="resetBtn">
 
+        最初に戻る
 
-    <!-- =========================================
-         7. 運動画面
-    ========================================== -->
-    <div id="trainingScreen" class="screen hidden trainingScreen">
+    </button>
 
-        <!-- 安全メッセージ -->
-        <div id="safetyMessage" class="safetyMessage">
-            ⚠ 周りに人や危険物がないことを確認してください
-        </div>
+</div>
 
-        <!-- 警告 -->
-        <div id="warning" class="warning"></div>
+<!-- ===========================
+運動後記憶テスト結果
+=========================== -->
 
-        <!-- ステータス -->
-        <div id="statsPanel" class="statsPanel">
-            <div class="statCard">
-                <div class="label">スクワット</div>
-                <div id="sq" class="value">0</div>
+<div
+id="resultScreen"
+class="screen hidden">
+
+    <div class="resultCard">
+
+        <h1 class="resultTitle">
+
+            実験結果
+
+        </h1>
+
+        <div class="resultSection">
+
+            <h3>
+
+                運動前
+
+            </h3>
+
+            <div class="resultRow">
+
+                <span>
+
+                    正解数
+
+                </span>
+
+                <span id="beforeCorrectResult">
+
+                    0 / 20
+
+                </span>
+
             </div>
 
-            <div class="statCard">
-                <div class="label">ジャンプ</div>
-                <div id="jp" class="value">0</div>
+            <div class="resultRow">
+
+                <span>
+
+                    正答率
+
+                </span>
+
+                <span id="beforeRateResult">
+
+                    0%
+
+                </span>
+
             </div>
 
-            <div class="statCard">
-                <div class="label">消費kcal</div>
-                <div id="kcal" class="value">0.0</div>
+        </div>
+
+        <div class="resultSection">
+
+            <h3>
+
+                運動後
+
+            </h3>
+
+            <div class="resultRow">
+
+                <span>
+
+                    正解数
+
+                </span>
+
+                <span id="afterCorrectResult">
+
+                    0 / 20
+
+                </span>
+
             </div>
+
+            <div class="resultRow">
+
+                <span>
+
+                    正答率
+
+                </span>
+
+                <span id="afterRateResult">
+
+                    0%
+
+                </span>
+
+            </div>
+
         </div>
 
-        <!-- FPS -->
-        <div id="fpsPanel" class="fpsPanel">
-            FPS :
-            <span id="fpsValue">0</span>
+        <div class="resultSection">
+
+            <h3>
+
+                記憶力向上率
+
+            </h3>
+
+            <div class="resultRow highlightRow">
+
+                <span>
+
+                    向上率
+
+                </span>
+
+                <span id="improveRate">
+
+                    +0%
+
+                </span>
+
+            </div>
+
         </div>
 
-        <!-- リセット -->
-        <button id="resetBtn" class="resetBtn">
-            最初に戻る
+        <div class="resultSection">
+
+            <h3>
+
+                運動データ
+
+            </h3>
+
+            <div class="resultRow">
+
+                <span>
+
+                    スクワット回数
+
+                </span>
+
+                <span id="resultSquat">
+
+                    0回
+
+                </span>
+
+            </div>
+
+            <div class="resultRow">
+
+                <span>
+
+                    ジャンプ回数
+
+                </span>
+
+                <span id="resultJump">
+
+                    0回
+
+                </span>
+
+            </div>
+
+            <div class="resultRow">
+
+                <span>
+
+                    消費カロリー
+
+                </span>
+
+                <span id="resultKcal">
+
+                    0.0 kcal
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="resultComment">
+
+            お疲れ様でした！<br>
+
+            運動前後の記憶力の変化を
+            研究データとして活用できます。
+
+        </div>
+
+        <br>
+
+        <button
+            id="restartBtn"
+            class="primaryBtn">
+
+            もう一度実験する
+
         </button>
 
-        <!-- カメラ -->
-        <video
-            id="video"
-            autoplay
-            playsinline
-            muted
-            style="display:none;">
-        </video>
-
-        <!-- 描画 -->
-        <canvas id="canvas"></canvas>
     </div>
 
+</div>
 
+<!-- ===========================
+app.js
+=========================== -->
 
-    <!-- =========================================
-         8. 最終結果画面
-    ========================================== -->
-    <div id="resultScreen" class="screen hidden">
-        <div class="resultCard">
-            <h2 class="resultTitle">結果</h2>
+<script src="app.js"></script>
 
-            <!-- 記憶成績 -->
-            <div class="resultSection">
-                <h3>記憶テスト結果</h3>
-
-                <div class="resultRow">
-                    <span>運動前 正解数</span>
-                    <span id="beforeCorrect">0 / 10</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動前 正答率</span>
-                    <span id="beforeRate">0%</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動後 正解数</span>
-                    <span id="afterCorrect">0 / 10</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動後 正答率</span>
-                    <span id="afterRate">0%</span>
-                </div>
-
-                <div class="resultRow highlightRow">
-                    <span>成績変化</span>
-                    <span id="improveRate">0%</span>
-                </div>
-
-                <p id="resultComment" class="resultComment"></p>
-            </div>
-
-            <!-- 詳細 -->
-            <div class="resultSection">
-                <h3>記憶テスト詳細</h3>
-
-                <div class="resultRow">
-                    <span>正解数字</span>
-                    <span id="correctDigitsText">-</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動前の回答</span>
-                    <span id="beforeUserAnswer">-</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動前の正解数</span>
-                    <span id="correctDigitsBeforeAnswer">-</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動後の回答</span>
-                    <span id="afterUserAnswer">-</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>運動後の正解数</span>
-                    <span id="correctDigitsAfterAnswer">-</span>
-                </div>
-            </div>
-
-            <!-- 運動結果 -->
-            <div class="resultSection">
-                <h3>運動結果</h3>
-
-                <div class="resultRow">
-                    <span>スクワット回数</span>
-                    <span id="resultSquat">0</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>ジャンプ回数</span>
-                    <span id="resultJump">0</span>
-                </div>
-
-                <div class="resultRow">
-                    <span>消費kcal</span>
-                    <span id="resultKcal">0.0</span>
-                </div>
-            </div>
-
-            <button id="restartBtn" class="primaryBtn">
-                もう一度最初から
-            </button>
-        </div>
-    </div>
-
-
-
-    <!-- =========================================
-         app.js
-         ※ Part1〜Part4 を1つにまとめたもの
-    ========================================== -->
-    <script src="app.js"></script>
 </body>
+
 </html>
