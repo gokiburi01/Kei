@@ -1,61 +1,85 @@
-/* =========================================
-   集中力向上トレーニングアプリ
+/* ==========================================================
    app.css
-   index.html / app.js Part1〜Part4 対応版
-========================================= */
+   Part1
+   基本設定・初期画面・入力フォーム
+========================================================== */
 
-
-/* =========================================
-   1. 基本設定
-========================================= */
 *{
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
 html,
 body{
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    min-height: 100%;
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    background:#eef7ff;
+
     font-family:
-        "Hiragino Sans",
-        "Yu Gothic",
-        "Meiryo",
-        sans-serif;
-    background: #f5f8ff;
-    color: #1f2a44;
+    "Yu Gothic",
+    "Meiryo",
+    sans-serif;
+
+    color:#222;
+
 }
 
 body{
-    overflow-x: hidden;
-    -webkit-text-size-adjust: 100%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+}
+
+/*==========================================================
+共通画面
+==========================================================*/
+
+.screen{
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    background:
+
+    linear-gradient(
+
+    180deg,
+
+    #eef7ff 0%,
+
+    #dceeff 100%
+
+    );
+
 }
 
 .hidden{
-    display: none !important;
+
+    display:none !important;
+
 }
 
+/*==========================================================
+カード共通
+==========================================================*/
 
-
-/* =========================================
-   2. 共通 screen レイアウト
-========================================= */
-.screen{
-    width: 100%;
-    min-height: 100vh;
-    padding: 20px 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-
-
-/* =========================================
-   3. 共通カードデザイン
-========================================= */
 .setupCard,
 .loadingBox,
 .countdownCard,
@@ -63,489 +87,846 @@ body{
 .answerCard,
 .memoryResultCard,
 .resultCard{
-    width: min(92vw, 760px);
-    background: #ffffff;
-    border-radius: 24px;
-    box-shadow: 0 16px 40px rgba(31, 42, 68, 0.12);
-    padding: 28px 22px;
+
+    width:min(90%,720px);
+
+    background:#ffffff;
+
+    border-radius:25px;
+
+    padding:35px;
+
+    box-shadow:
+
+    0 15px 40px
+
+    rgba(0,0,0,0.15);
+
 }
 
+/*==========================================================
+タイトル
+==========================================================*/
+
 .appTitle{
-    margin: 0 0 12px;
-    font-size: clamp(28px, 4vw, 40px);
-    line-height: 1.3;
-    text-align: center;
-    color: #1d3557;
+
+    font-size:2.2rem;
+
+    text-align:center;
+
+    color:#1565c0;
+
+    margin-bottom:20px;
+
 }
 
 .description{
-    margin: 0 0 24px;
-    text-align: center;
-    font-size: 16px;
-    line-height: 1.8;
-    color: #44506a;
+
+    text-align:center;
+
+    font-size:1.1rem;
+
+    line-height:1.8;
+
+    color:#444;
+
+    margin-bottom:35px;
+
 }
 
+/*==========================================================
+フォーム
+==========================================================*/
 
-
-/* =========================================
-   4. フォーム
-========================================= */
 .formGroup{
-    margin-bottom: 18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    margin-bottom:20px;
+
 }
 
 .formGroup label{
-    display: block;
-    margin-bottom: 8px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #24324d;
+
+    font-weight:bold;
+
+    margin-bottom:8px;
+
+    color:#333;
+
 }
 
-.formGroup input,
-.formGroup select{
-    width: 100%;
-    height: 52px;
-    padding: 0 14px;
-    border: 1.5px solid #cfd9ee;
-    border-radius: 14px;
-    background: #f9fbff;
-    font-size: 18px;
-    color: #1f2a44;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+input,
+select{
+
+    width:100%;
+
+    padding:14px;
+
+    font-size:1rem;
+
+    border-radius:12px;
+
+    border:
+
+    2px solid
+
+    #b5d8ff;
+
+    background:white;
+
+    transition:
+
+    .25s;
+
 }
 
-.formGroup input:focus,
-.formGroup select:focus,
-.memoryAnswerInput:focus{
-    border-color: #5b8def;
-    box-shadow: 0 0 0 4px rgba(91, 141, 239, 0.15);
+input:focus,
+select:focus{
+
+    outline:none;
+
+    border-color:
+
+    #1976d2;
+
+    box-shadow:
+
+    0 0 10px
+
+    rgba(25,118,210,.25);
+
 }
 
-
-
-/* =========================================
-   5. ボタン
-========================================= */
-.primaryBtn,
-.secondaryBtn,
-.resetBtn{
-    appearance: none;
-    border: none;
-    cursor: pointer;
-    border-radius: 16px;
-    font-weight: 700;
-    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
-}
-
-.primaryBtn:active,
-.secondaryBtn:active,
-.resetBtn:active{
-    transform: scale(0.98);
-}
+/*==========================================================
+ボタン
+==========================================================*/
 
 .primaryBtn{
-    width: 100%;
-    min-height: 56px;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, #6ea8fe 0%, #4f7df0 100%);
-    color: #ffffff;
-    font-size: 18px;
-    box-shadow: 0 10px 24px rgba(79, 125, 240, 0.28);
+
+    width:100%;
+
+    padding:15px;
+
+    margin-top:20px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:
+
+    linear-gradient(
+
+    90deg,
+
+    #2196f3,
+
+    #1565c0
+
+    );
+
+    color:white;
+
+    font-size:1.1rem;
+
+    cursor:pointer;
+
+    transition:.25s;
+
 }
 
 .primaryBtn:hover{
-    opacity: 0.95;
+
+    transform:scale(1.03);
+
+}
+
+.primaryBtn:active{
+
+    transform:scale(.98);
+
 }
 
 .secondaryBtn{
-    width: 100%;
-    min-height: 56px;
-    padding: 14px 18px;
-    background: #eef3ff;
-    color: #35508a;
-    font-size: 18px;
-    box-shadow: 0 8px 18px rgba(80, 104, 160, 0.10);
+
+    width:100%;
+
+    padding:15px;
+
+    margin-top:12px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:#9e9e9e;
+
+    color:white;
+
+    font-size:1rem;
+
+    cursor:pointer;
+
 }
 
-.secondaryBtn:hover{
-    opacity: 0.96;
-}
+/*==========================================================
+ロード画面
+==========================================================*/
 
-
-
-/* =========================================
-   6. ロード画面
-========================================= */
 .loadingBox{
-    text-align: center;
+
+    text-align:center;
+
 }
 
 .loadingBox h2{
-    margin: 0 0 16px;
-    font-size: clamp(28px, 4vw, 36px);
-    color: #1d3557;
+
+    color:#1565c0;
+
+    font-size:2rem;
+
+    margin-bottom:20px;
+
 }
 
 #loadingText{
-    font-size: 18px;
-    color: #4b5d7c;
-    line-height: 1.8;
+
+    font-size:1.15rem;
+
+    color:#444;
+
 }
 
-
-
-/* =========================================
-   7. カウントダウン画面
-========================================= */
-#countdownScreen{
-    background:
-        linear-gradient(180deg, #f7fbff 0%, #edf5ff 100%);
-}
+/*==========================================================
+カウントダウン
+==========================================================*/
 
 .countdownCard{
-    text-align: center;
-    background: #ffffff;
+
+    text-align:center;
+
 }
 
 .countdownMessage{
-    font-size: clamp(24px, 4vw, 36px);
-    line-height: 1.6;
-    font-weight: 700;
-    color: #3567c8;
-    margin-bottom: 28px;
+
+    font-size:2rem;
+
+    color:#1565c0;
+
+    font-weight:bold;
+
+    margin-bottom:35px;
+
+    line-height:1.6;
+
 }
 
 .countdownNumber{
-    font-size: clamp(72px, 12vw, 120px);
-    line-height: 1;
-    font-weight: 800;
-    color: #1d3557;
+
+    font-size:7rem;
+
+    font-weight:bold;
+
+    color:#ff9800;
+
 }
 
-
-
-/* =========================================
-   8. 数字表示画面
-========================================= */
-#memoryScreen{
-    background:
-        linear-gradient(180deg, #f7fbff 0%, #eef7ff 100%);
-}
-
-.memoryCard{
-    text-align: center;
-}
+/*==========================================================
+記憶テスト
+==========================================================*/
 
 .memoryTitle{
-    margin: 0 0 24px;
-    font-size: clamp(24px, 4vw, 34px);
-    color: #1d3557;
+
+    text-align:center;
+
+    color:#1565c0;
+
+    margin-bottom:30px;
+
 }
 
 .memoryDigits{
-    margin: 0 auto 22px;
-    padding: 18px 12px;
-    border-radius: 20px;
-    background: #f3f8ff;
-    color: #0d2f6f;
-    font-size: clamp(34px, 6vw, 64px);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    word-break: break-all;
-    line-height:1.5;
-    box-shadow: inset 0 0 0 1px #dce8ff;
+
+    font-size:2.2rem;
+
+    font-weight:bold;
+
+    letter-spacing:.15em;
+
+    text-align:center;
+
+    color:#0d47a1;
+
+    word-break:break-all;
+
+    margin-bottom:30px;
+
 }
 
 .memoryTimer{
-    font-size: 20px;
-    color: #50627f;
-    font-weight: 700;
+
+    text-align:center;
+
+    font-size:3rem;
+
+    color:#f44336;
+
+    font-weight:bold;
+
 }
+/*==========================================================
+回答画面
+==========================================================*/
 
-
-
-/* =========================================
-   9. 回答画面
-========================================= */
 .answerCard{
-    text-align: center;
+
+    text-align:center;
+
 }
 
 .answerTitle{
-    margin: 0 0 24px;
-    font-size: clamp(22px, 4vw, 32px);
-    line-height: 1.6;
-    color: #1d3557;
+
+    font-size:2rem;
+
+    color:#1565c0;
+
+    margin-bottom:30px;
+
+    line-height:1.5;
+
 }
 
 .memoryAnswerInput{
-    width: 100%;
-    min-height: 62px;
-    padding: 14px 16px;
-    border: 1.5px solid #cfd9ee;
-    border-radius: 16px;
-    background: #f9fbff;
-    font-size: clamp(24px, 5vw, 36px);
-    text-align: center;
-    letter-spacing: 0.12em;
-    color: #1f2a44;
-    margin-bottom: 18px;
+
+    width:100%;
+
+    padding:18px;
+
+    border-radius:15px;
+
+    border:2px solid #90caf9;
+
+    font-size:2rem;
+
+    text-align:center;
+
+    letter-spacing:.15em;
+
+    margin-bottom:25px;
+
+}
+
+.memoryAnswerInput:focus{
+
+    outline:none;
+
+    border-color:#1976d2;
+
+    box-shadow:0 0 12px rgba(25,118,210,.3);
+
 }
 
 .answerButtons{
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:15px;
+
 }
 
-
-
-/* =========================================
-   10. 運動前記憶テスト結果画面
-========================================= */
-#beforeMemoryResultScreen{
-    background:
-        linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
-}
+/*==========================================================
+運動前結果画面
+==========================================================*/
 
 .memoryResultCard{
-    text-align: center;
+
+    text-align:center;
+
 }
 
 .memoryResultCard h2{
-    margin: 0 0 20px;
-    font-size: clamp(26px, 4vw, 36px);
-    color: #1d3557;
+
+    font-size:2rem;
+
+    color:#1565c0;
+
+    margin-bottom:25px;
+
 }
 
 .memoryResultMain{
-    margin: 0 0 14px;
-    font-size: clamp(24px, 4vw, 34px);
-    line-height: 1.8;
-    color: #24457e;
-    font-weight: 700;
-}
 
-.memoryResultMain span{
-    font-size: 1.25em;
-    color: #2f6fe4;
-    font-weight: 800;
+    font-size:2rem;
+
+    font-weight:bold;
+
+    color:#1976d2;
+
+    margin-bottom:25px;
+
+    line-height:1.7;
+
 }
 
 .memoryResultSub{
-    margin: 0 0 24px;
-    font-size: 18px;
-    color: #50627f;
+
+    font-size:1.3rem;
+
+    color:#444;
+
+    margin-bottom:35px;
+
 }
 
+/*==========================================================
+運動画面
+==========================================================*/
 
-
-/* =========================================
-   11. 運動画面
-========================================= */
 .trainingScreen{
-    position: relative;
-    width: 100%;
-    min-height: 100vh;
-    padding: 0;
-    background: #0f1728;
-    overflow: hidden;
-    justify-content: flex-start;
-    align-items: flex-start;
+
+    background:#000;
+
+    overflow:hidden;
+
 }
 
-/* カメラ描画キャンバス */
+#video{
+
+    display:none;
+
+}
+
 #canvas{
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    display: block;
-    background: #000;
-    z-index: 1;
+
+    position:absolute;
+
+    top:0;
+
+    left:0;
+
+    width:100%;
+
+    height:100%;
+
 }
 
-/* 安全メッセージ */
+/*==========================================================
+安全メッセージ
+==========================================================*/
+
 .safetyMessage{
-    position: fixed;
-    top: max(12px, env(safe-area-inset-top));
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(92vw, 900px);
-    padding: 12px 16px;
-    border-radius: 16px;
-    background: rgba(255, 244, 214, 0.92);
-    color: #6b4b00;
-    font-weight: 700;
-    text-align: center;
-    z-index: 10;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+
+    position:absolute;
+
+    top:20px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#ffeb3b;
+
+    color:#222;
+
+    padding:12px 20px;
+
+    border-radius:15px;
+
+    font-weight:bold;
+
+    font-size:1rem;
+
+    z-index:100;
+
 }
 
-/* 警告 */
+/*==========================================================
+警告表示
+==========================================================*/
+
 .warning{
-    position: fixed;
-    top: calc(max(12px, env(safe-area-inset-top)) + 64px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(92vw, 900px);
-    min-height: 28px;
-    padding: 8px 12px;
-    border-radius: 14px;
-    background: rgba(255, 99, 99, 0.92);
-    color: #ffffff;
-    font-weight: 700;
-    text-align: center;
-    z-index: 10;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+
+    position:absolute;
+
+    top:70px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    background:#f44336;
+
+    color:white;
+
+    padding:10px 18px;
+
+    border-radius:12px;
+
+    font-size:1rem;
+
+    font-weight:bold;
+
+    display:none;
+
+    z-index:100;
+
 }
 
-/* ステータスパネル */
+/*==========================================================
+現在の運動
+==========================================================*/
+
+#exercisePanel{
+
+    position:absolute;
+
+    top:20px;
+
+    left:20px;
+
+    width:260px;
+
+    background:rgba(255,255,255,.92);
+
+    border-radius:20px;
+
+    padding:20px;
+
+    box-shadow:0 6px 20px rgba(0,0,0,.2);
+
+}
+
+.exerciseTitle{
+
+    font-size:1rem;
+
+    color:#666;
+
+    margin-bottom:10px;
+
+}
+
+#exerciseName{
+
+    font-size:2rem;
+
+    font-weight:bold;
+
+    color:#1565c0;
+
+    margin-bottom:12px;
+
+}
+
+#exerciseTarget{
+
+    font-size:1.2rem;
+
+    color:#444;
+
+}
+
+/*==========================================================
+運動進行状況
+==========================================================*/
+
+#trainingProgress{
+
+    position:absolute;
+
+    top:20px;
+
+    right:20px;
+
+    width:220px;
+
+    background:rgba(255,255,255,.92);
+
+    border-radius:20px;
+
+    padding:20px;
+
+    text-align:center;
+
+    box-shadow:0 6px 20px rgba(0,0,0,.2);
+
+}
+
+.progressTitle{
+
+    color:#666;
+
+    margin-bottom:10px;
+
+}
+
+#progressText{
+
+    font-size:1.6rem;
+
+    color:#1976d2;
+
+    font-weight:bold;
+
+}
+/*==========================================================
+ステータスパネル
+==========================================================*/
+
 .statsPanel{
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: max(18px, env(safe-area-inset-bottom));
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    z-index: 10;
+
+    position:absolute;
+
+    bottom:20px;
+
+    left:20px;
+
+    display:flex;
+
+    gap:15px;
+
+    z-index:100;
+
 }
 
 .statCard{
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 18px;
-    padding: 14px 10px;
-    text-align: center;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.18);
-    backdrop-filter: blur(6px);
+
+    width:120px;
+
+    background:rgba(255,255,255,.92);
+
+    border-radius:18px;
+
+    padding:15px;
+
+    text-align:center;
+
+    box-shadow:0 6px 18px rgba(0,0,0,.18);
+
 }
 
 .statCard .label{
-    font-size: 14px;
-    color: #4b5d7c;
-    margin-bottom: 6px;
-    font-weight: 700;
+
+    font-size:0.95rem;
+
+    color:#666;
+
+    margin-bottom:10px;
+
 }
 
 .statCard .value{
-    font-size: clamp(26px, 5vw, 40px);
-    font-weight: 800;
-    color: #18335f;
-    line-height: 1.1;
+
+    font-size:2rem;
+
+    font-weight:bold;
+
+    color:#1565c0;
+
 }
 
-/* FPS */
+/*==========================================================
+FPS表示
+==========================================================*/
+
 .fpsPanel{
-    position: fixed;
-    right: 12px;
-    top: calc(max(12px, env(safe-area-inset-top)) + 120px);
-    padding: 10px 14px;
-    border-radius: 14px;
-    background: rgba(20, 29, 48, 0.78);
-    color: #ffffff;
-    font-weight: 700;
-    z-index: 10;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+
+    position:absolute;
+
+    bottom:20px;
+
+    right:20px;
+
+    background:rgba(0,0,0,.75);
+
+    color:#00ff66;
+
+    padding:12px 18px;
+
+    border-radius:12px;
+
+    font-size:1rem;
+
+    font-weight:bold;
+
+    font-family:monospace;
+
+    z-index:100;
+
 }
 
-/* リセットボタン */
+/*==========================================================
+リセットボタン
+==========================================================*/
+
 .resetBtn{
-    position: fixed;
-    left: 12px;
-    top: calc(max(12px, env(safe-area-inset-top)) + 120px);
-    min-height: 48px;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.92);
-    color: #18335f;
-    font-size: 15px;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
-    z-index: 10;
+
+    position:absolute;
+
+    top:50%;
+
+    right:20px;
+
+    transform:translateY(-50%);
+
+    background:#f44336;
+
+    color:#fff;
+
+    border:none;
+
+    border-radius:14px;
+
+    padding:14px 20px;
+
+    cursor:pointer;
+
+    font-size:1rem;
+
+    transition:.25s;
+
+    z-index:100;
+
 }
 
+.resetBtn:hover{
 
+    background:#d32f2f;
 
-/* =========================================
-   12. 結果画面
-========================================= */
-#resultScreen{
-    padding: 24px 14px;
-    background:
-        linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%);
+    transform:translateY(-50%) scale(1.05);
+
 }
+
+.resetBtn:active{
+
+    transform:translateY(-50%) scale(.96);
+
+}
+
+/*==========================================================
+結果画面
+==========================================================*/
 
 .resultCard{
-    width: min(94vw, 860px);
+
+    text-align:center;
+
 }
 
 .resultTitle{
-    margin: 0 0 22px;
-    text-align: center;
-    font-size: clamp(28px, 5vw, 40px);
-    color: #1d3557;
+
+    font-size:2.3rem;
+
+    color:#1565c0;
+
+    margin-bottom:30px;
+
 }
 
 .resultSection{
-    margin-bottom: 22px;
-    padding: 18px 16px;
-    border-radius: 18px;
-    background: #f9fbff;
-    box-shadow: inset 0 0 0 1px #e3ecff;
+
+    margin-bottom:30px;
+
+    text-align:left;
+
 }
 
 .resultSection h3{
-    margin: 0 0 14px;
-    font-size: 22px;
-    color: #24457e;
+
+    color:#1976d2;
+
+    margin-bottom:12px;
+
+    font-size:1.3rem;
+
 }
 
 .resultRow{
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid #e3ecff;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #2c3f62;
-    word-break: break-word;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:10px 0;
+
+    border-bottom:1px solid #e0e0e0;
+
+    font-size:1.1rem;
+
 }
 
-.resultRow:last-child{
-    border-bottom: none;
-}
+.highlightRow{
 
-.resultRow span:last-child{
-    font-weight: 800;
-    text-align: right;
-    color: #18335f;
-}
+    font-size:1.3rem;
 
-.highlightRow span:last-child{
-    color: #2f6fe4;
-    font-size: 20px;
+    font-weight:bold;
+
+    color:#1565c0;
+
 }
 
 .resultComment{
-    margin: 12px 0 0;
-    padding: 14px 16px;
-    border-radius: 14px;
-    background: #eef5ff;
-    color: #24457e;
-    font-weight: 700;
-    line-height: 1.8;
+
+    margin-top:25px;
+
+    font-size:1.15rem;
+
+    color:#444;
+
+    line-height:1.8;
+
+    text-align:center;
+
 }
 
+/*==========================================================
+アニメーション
+==========================================================*/
 
+@keyframes fadeIn{
 
-/* =========================================
-   13. PC/タブレット向け微調整
-========================================= */
-@media (min-width: 768px){
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+.setupCard,
+.loadingBox,
+.countdownCard,
+.memoryCard,
+.answerCard,
+.memoryResultCard,
+.resultCard{
+
+    animation:fadeIn .4s ease;
+
+}
+
+/*==========================================================
+レスポンシブ（iPad・タブレット）
+==========================================================*/
+
+@media (max-width:1024px){
 
     .setupCard,
     .loadingBox,
@@ -554,109 +935,345 @@ body{
     .answerCard,
     .memoryResultCard,
     .resultCard{
-        padding: 36px 34px;
-    }
 
-    .answerButtons{
-        grid-template-columns: 1fr 1fr;
-    }
+        width:95%;
 
-    .statsPanel{
-        left: 20px;
-        right: auto;
-        bottom: 20px;
-        width: min(520px, 62vw);
-        gap: 14px;
-    }
+        padding:25px;
 
-    .statCard{
-        padding: 18px 12px;
-    }
-
-    .statCard .label{
-        font-size: 15px;
-    }
-
-    .fpsPanel{
-        right: 20px;
-    }
-
-    .resetBtn{
-        left: 20px;
-    }
-}
-
-
-
-/* =========================================
-   14. 小さめ端末向け調整
-========================================= */
-@media (max-width: 480px){
-
-    .screen{
-        padding: 14px 12px;
-    }
-
-    .setupCard,
-    .loadingBox,
-    .countdownCard,
-    .memoryCard,
-    .answerCard,
-    .memoryResultCard,
-    .resultCard{
-        width: 100%;
-        border-radius: 20px;
-        padding: 22px 16px;
-    }
-
-    .description{
-        font-size: 15px;
     }
 
     .memoryDigits{
-        font-size: clamp(28px, 8vw, 40px);
-        letter-spacing: 0.08em;
+
+        font-size:1.8rem;
+
+        letter-spacing:.08em;
+
     }
 
     .countdownNumber{
-        font-size: clamp(64px, 18vw, 96px);
+
+        font-size:5.5rem;
+
     }
 
-    .statsPanel{
-        gap: 8px;
+    #exercisePanel{
+
+        width:220px;
+
+    }
+
+    #trainingProgress{
+
+        width:200px;
+
     }
 
     .statCard{
-        padding: 12px 8px;
+
+        width:100px;
+
     }
 
-    .statCard .value{
-        font-size: 24px;
-    }
-
-    .fpsPanel,
-    .resetBtn{
-        font-size: 13px;
-    }
-
-    .resultRow{
-        font-size: 15px;
-    }
 }
 
+/*==========================================================
+スマートフォン
+==========================================================*/
 
+@media (max-width:600px){
 
-/* =========================================
-   15. iPad横向きなどで上部が詰まりすぎないように
-========================================= */
-@media (min-width: 900px){
+    .appTitle{
 
-    .warning{
-        top: calc(max(12px, env(safe-area-inset-top)) + 72px);
+        font-size:1.8rem;
+
     }
 
-    .fpsPanel,
+    .description{
+
+        font-size:1rem;
+
+    }
+
+    .memoryDigits{
+
+        font-size:1.3rem;
+
+    }
+
+    .memoryTimer{
+
+        font-size:2.3rem;
+
+    }
+
+    .statsPanel{
+
+        flex-wrap:wrap;
+
+        width:calc(100% - 40px);
+
+    }
+
+    .statCard{
+
+        flex:1;
+
+        min-width:90px;
+
+    }
+
+    #exercisePanel{
+
+        width:calc(100% - 40px);
+
+        left:20px;
+
+        right:20px;
+
+    }
+
+    #trainingProgress{
+
+        width:calc(100% - 40px);
+
+        top:170px;
+
+        left:20px;
+
+        right:20px;
+
+    }
+
+    .fpsPanel{
+
+        font-size:.9rem;
+
+    }
+
     .resetBtn{
-        top: calc(max(12px, env(safe-area-inset-top)) + 132px);
+
+        bottom:20px;
+
+        top:auto;
+
+        right:20px;
+
+        transform:none;
+
     }
+
 }
+/*==========================================================
+Part4
+デザイン仕上げ
+==========================================================*/
+
+/* ===== ボタンアニメーション ===== */
+
+.primaryBtn,
+.secondaryBtn,
+.resetBtn{
+
+    transition:
+
+    background .25s,
+
+    transform .2s,
+
+    box-shadow .2s;
+
+}
+
+.primaryBtn:hover{
+
+    box-shadow:
+
+    0 8px 18px
+
+    rgba(33,150,243,.35);
+
+}
+
+.secondaryBtn:hover{
+
+    box-shadow:
+
+    0 8px 18px
+
+    rgba(100,100,100,.3);
+
+}
+
+.resetBtn:hover{
+
+    box-shadow:
+
+    0 8px 18px
+
+    rgba(244,67,54,.35);
+
+}
+
+/* ===== 数字表示 ===== */
+
+.value{
+
+    user-select:none;
+
+    text-shadow:
+
+    0 2px 8px
+
+    rgba(25,118,210,.25);
+
+}
+
+/* ===== 結果画面 ===== */
+
+.resultSection{
+
+    background:#f8fbff;
+
+    border-radius:15px;
+
+    padding:18px;
+
+    margin-bottom:20px;
+
+}
+
+.resultSection h3{
+
+    border-left:
+
+    6px solid #1976d2;
+
+    padding-left:10px;
+
+}
+
+/* ===== メモリー数字 ===== */
+
+.memoryDigits{
+
+    background:#f3f9ff;
+
+    border-radius:15px;
+
+    padding:25px;
+
+}
+
+/* ===== カウントダウン ===== */
+
+.countdownNumber{
+
+    animation:
+
+    countdownPulse
+
+    1s infinite;
+
+}
+
+@keyframes countdownPulse{
+
+    0%{
+
+        transform:scale(1);
+
+    }
+
+    50%{
+
+        transform:scale(1.15);
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+    }
+
+}
+
+/* ===== ロード画面 ===== */
+
+.loadingBox{
+
+    animation:
+
+    fadeIn .5s;
+
+}
+
+/* ===== ステータスカード ===== */
+
+.statCard{
+
+    transition:.25s;
+
+}
+
+.statCard:hover{
+
+    transform:
+
+    translateY(-3px);
+
+}
+
+/* ===== Canvas ===== */
+
+canvas{
+
+    image-rendering:auto;
+
+}
+
+/* ===== スクロール防止 ===== */
+
+body{
+
+    touch-action:none;
+
+    overscroll-behavior:none;
+
+}
+
+/* ===== iPad ===== */
+
+@media (min-width:768px){
+
+    .memoryDigits{
+
+        font-size:2.4rem;
+
+    }
+
+    .countdownNumber{
+
+        font-size:7rem;
+
+    }
+
+}
+
+/* ===== 大画面 ===== */
+
+@media (min-width:1400px){
+
+    .setupCard,
+    .memoryCard,
+    .resultCard{
+
+        max-width:900px;
+
+    }
+
+}
+
+/*==========================================================
+End
+==========================================================*/
