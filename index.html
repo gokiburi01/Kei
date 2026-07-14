@@ -12,342 +12,810 @@ content="width=device-width,initial-scale=1.0">
 集中力向上トレーニングアプリ
 </title>
 
-<link rel="stylesheet" href="app.css">
+
+<!-- ==========================
+CSS START
+========================== -->
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+
+    margin:0;
+    padding:0;
+
+    font-family:
+    "Arial",
+    "Noto Sans JP",
+    sans-serif;
+
+    background:#0b1020;
+
+    color:white;
+
+}
+
+
+.screen{
+
+    position:fixed;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
+.hidden{
+
+    display:none !important;
+
+}
+
+
+/* ==========================
+初期設定
+========================== */
+
+
+.setupCard{
+
+    width:90%;
+    max-width:450px;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    background:
+    rgba(255,255,255,0.1);
+
+    backdrop-filter:
+    blur(15px);
+
+}
+
+
+.appTitle{
+
+    text-align:center;
+
+    font-size:28px;
+
+    margin-bottom:15px;
+
+}
+
+
+.description{
+
+    text-align:center;
+
+    line-height:1.6;
+
+    margin-bottom:25px;
+
+}
+
+
+
+.formGroup{
+
+    margin-bottom:18px;
+
+}
+
+
+.formGroup label{
+
+    display:block;
+
+    margin-bottom:6px;
+
+}
+
+
+
+input,
+select{
+
+    width:100%;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    border:none;
+
+    font-size:16px;
+
+}
+
+
+
+button{
+
+    cursor:pointer;
+
+    border:none;
+
+    font-size:16px;
+
+}
+
+
+
+.primaryBtn{
+
+    width:100%;
+
+    padding:15px;
+
+    border-radius:12px;
+
+    background:#00c6ff;
+
+    color:white;
+
+    font-weight:bold;
+
+    margin-top:15px;
+
+}
+
+
+.secondaryBtn{
+
+    width:100%;
+
+    padding:15px;
+
+    border-radius:12px;
+
+    background:#555;
+
+    color:white;
+
+    margin-top:10px;
+
+}
+
+
+/* ==========================
+ロード
+========================== */
+
+
+.loadingBox{
+
+    text-align:center;
+
+}
+
+
+.loadingBox h2{
+
+    font-size:30px;
+
+}
+
+
+
+/* ==========================
+カウントダウン
+========================== */
+
+
+.countdownCard{
+
+    text-align:center;
+
+}
+
+
+.countdownMessage{
+
+    font-size:28px;
+
+}
+
+
+
+.countdownNumber{
+
+    font-size:100px;
+
+    font-weight:bold;
+
+}
+
+
+
+/* ==========================
+記憶画面
+========================== */
+
+
+.memoryCard{
+
+    text-align:center;
+
+}
+
+
+.memoryTitle{
+
+    font-size:28px;
+
+}
+
+
+.memoryDigits{
+
+    font-size:45px;
+
+    letter-spacing:5px;
+
+    margin:30px 0;
+
+}
+
+
+
+.memoryTimer{
+
+    font-size:35px;
+
+}
+
+
+
+/* ==========================
+回答
+========================== */
+
+
+.answerCard{
+
+    width:90%;
+
+    max-width:500px;
+
+    text-align:center;
+
+}
+
+
+
+.memoryAnswerInput{
+
+    font-size:25px;
+
+    text-align:center;
+
+    letter-spacing:5px;
+
+}
+
+
+
+.answerButtons{
+
+    margin-top:20px;
+
+}
+
+
+
+/* ==========================
+運動前結果
+========================== */
+
+
+.memoryResultCard{
+
+    width:90%;
+
+    max-width:450px;
+
+    text-align:center;
+
+    background:
+    rgba(255,255,255,0.1);
+
+    padding:30px;
+
+    border-radius:20px;
+
+}
+
+
+.memoryResultMain{
+
+    font-size:25px;
+
+}
+
+
+
+/* ==========================
+運動画面
+========================== */
+
+
+.trainingScreen{
+
+    overflow:hidden;
+
+    background:black;
+
+}
+
+
+#canvas{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:contain;
+
+}
+
+
+
+.safetyMessage{
+
+    position:absolute;
+
+    top:20px;
+
+    width:100%;
+
+    text-align:center;
+
+    font-size:18px;
+
+}
+
+
+.warning{
+
+    position:absolute;
+
+    top:60px;
+
+    width:100%;
+
+    text-align:center;
+
+    color:#ff5555;
+
+    font-size:22px;
+
+}
+
+
+
+.statsPanel{
+
+    position:absolute;
+
+    bottom:30px;
+
+    left:20px;
+
+    right:20px;
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+
+
+.statCard{
+
+    flex:1;
+
+    background:
+    rgba(0,0,0,0.6);
+
+    padding:15px;
+
+    border-radius:15px;
+
+    text-align:center;
+
+}
+
+
+.value{
+
+    font-size:30px;
+
+    font-weight:bold;
+
+}
+
+
+
+.fpsPanel{
+
+    position:absolute;
+
+    top:20px;
+
+    right:20px;
+
+}
+
+
+
+.resetBtn{
+
+    position:absolute;
+
+    top:60px;
+
+    right:20px;
+
+    padding:10px 20px;
+
+    border-radius:10px;
+
+}
+
+
+
+/* ==========================
+結果画面
+========================== */
+
+
+.resultCard{
+
+    width:90%;
+
+    max-width:500px;
+
+    max-height:90%;
+
+    overflow:auto;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    background:
+    rgba(255,255,255,0.1);
+
+}
+
+
+
+.resultRow{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    padding:10px 0;
+
+}
+
+
+.highlightRow{
+
+    font-size:25px;
+
+}
+
+
+.resultComment{
+
+    margin-top:20px;
+
+    text-align:center;
+
+}
+
+
+
+</style>
+
+<!-- ==========================
+CSS END
+========================== -->
+
 
 <!-- TensorFlow -->
+
 <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0"></script>
+
 <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 
+
 <!-- MoveNet -->
+
 <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+
 
 </head>
 
-<body>
 
+<body>
 <!-- ===========================
 初期設定画面
 =========================== -->
 
 <div id="setupScreen" class="screen">
 
-<div class="setupCard">
+    <div class="setupCard">
 
-<h1 class="appTitle">
-集中力向上トレーニングアプリ
-</h1>
+        <h1 class="appTitle">
+            集中力向上トレーニングアプリ
+        </h1>
 
-<p class="description">
+        <p class="description">
+            20分間の運動前後で記憶力の変化を測定します。
+        </p>
 
-20分間の運動前後で
-記憶力の変化を測定します。
+        <div class="formGroup">
+            <label>身長(cm)</label>
+            <input
+                id="heightInput"
+                type="number"
+                placeholder="170">
+        </div>
 
-</p>
+        <div class="formGroup">
+            <label>体重(kg)</label>
+            <input
+                id="weightInput"
+                type="number"
+                placeholder="60">
+        </div>
 
-<div class="formGroup">
+        <div class="formGroup">
+            <label>性別</label>
+            <select id="genderInput">
+                <option value="male">男性</option>
+                <option value="female">女性</option>
+                <option value="other">その他</option>
+            </select>
+        </div>
 
-<label>
-身長(cm)
-</label>
+        <div class="formGroup">
+            <label>年齢層</label>
+            <select id="ageGroup">
+                <option>10〜20代</option>
+                <option>30〜40代</option>
+                <option>50〜60代</option>
+                <option>70〜80代</option>
+                <option>90〜100代</option>
+                <option>その他</option>
+            </select>
+        </div>
 
-<input
-id="heightInput"
-type="number"
-placeholder="170">
+        <button
+            id="startBtn"
+            class="primaryBtn">
 
-</div>
+            開始
 
-<div class="formGroup">
+        </button>
 
-<label>
-体重(kg)
-</label>
-
-<input
-id="weightInput"
-type="number"
-placeholder="60">
-
-</div>
-
-<div class="formGroup">
-
-<label>
-性別
-</label>
-
-<select id="genderInput">
-
-<option value="male">
-男性
-</option>
-
-<option value="female">
-女性
-</option>
-
-<option value="other">
-その他
-</option>
-
-</select>
+    </div>
 
 </div>
 
-<div class="formGroup">
 
-<label>
-年齢層
-</label>
-
-<select id="ageGroup">
-
-<option value="10-20">
-10〜20代
-</option>
-
-<option value="30-40">
-30〜40代
-</option>
-
-<option value="50-60">
-50〜60代
-</option>
-
-<option value="70-80">
-70〜80代
-</option>
-
-<option value="90-100">
-90〜100代
-</option>
-
-<option value="other">
-その他
-</option>
-
-</select>
-
-</div>
-
-<button
-id="startBtn"
-class="primaryBtn">
-
-開始
-
-</button>
-
-</div>
-
-</div>
 
 <!-- ===========================
 ロード画面
 =========================== -->
 
 <div
-id="loadingScreen"
-class="screen hidden">
+    id="loadingScreen"
+    class="screen hidden">
 
-<div class="loadingBox">
+    <div class="loadingBox">
 
-<h2>
+        <h2>ロード中...</h2>
 
-ロード中...
+        <p id="loadingText">
 
-</h2>
+            MoveNetを読み込んでいます...
 
-<p id="loadingText">
+        </p>
 
-MoveNetを準備しています...
-
-</p>
+    </div>
 
 </div>
 
-</div>
+
 
 <!-- ===========================
-10秒カウントダウン
+カウントダウン画面
 =========================== -->
 
 <div
-id="countdownScreen"
-class="screen hidden">
+    id="countdownScreen"
+    class="screen hidden">
 
-<div class="countdownCard">
+    <div class="countdownCard">
 
-<div class="countdownMessage">
+        <div class="countdownMessage">
 
-ランダムな数字を
-覚えてもらいます
+            ランダムな数字を覚えてください
+
+        </div>
+
+        <div
+            id="countdownNumber"
+            class="countdownNumber">
+
+            10
+
+        </div>
+
+    </div>
 
 </div>
 
-<div
-id="countdownNumber"
-class="countdownNumber">
 
-10
-
-</div>
-
-</div>
-
-</div>
 
 <!-- ===========================
-20桁記憶テスト
+記憶画面
 =========================== -->
 
 <div
-id="memoryScreen"
-class="screen hidden">
+    id="memoryScreen"
+    class="screen hidden">
 
-<div class="memoryCard">
+    <div class="memoryCard">
 
-<h2 class="memoryTitle">
+        <h2 class="memoryTitle">
 
-20桁の数字を
-15秒で覚えてください
+            20桁の数字を15秒で覚えてください
 
-</h2>
+        </h2>
 
-<div
-id="memoryDigits"
-class="memoryDigits">
+        <div
+            id="memoryDigits"
+            class="memoryDigits">
 
-12345678901234567890
+        </div>
 
-</div>
+        <div
+            id="memoryTimer"
+            class="memoryTimer">
 
-<div
-id="memoryTimer"
-class="memoryTimer">
+            15
 
-15
+        </div>
 
-</div>
-
-</div>
+    </div>
 
 </div>
-
 <!-- ===========================
 回答画面
 =========================== -->
 
 <div
-id="answerScreen"
-class="screen hidden">
+    id="answerScreen"
+    class="screen hidden">
 
-<div class="answerCard">
+    <div class="answerCard">
 
-<h2 class="answerTitle">
+        <h2 class="answerTitle">
 
-覚えている数字を
-入力してください
+            覚えている数字を入力してください
 
-</h2>
+        </h2>
 
-<input
+        <input
+            id="memoryAnswerInput"
+            class="memoryAnswerInput"
+            type="text"
+            maxlength="20"
+            inputmode="numeric"
+            autocomplete="off">
 
-id="memoryAnswerInput"
+        <div class="answerButtons">
 
-class="memoryAnswerInput"
+            <button
+                id="submitAnswer"
+                class="primaryBtn">
 
-type="text"
+                回答する
 
-maxlength="20"
+            </button>
 
-inputmode="numeric"
+            <button
+                id="giveUpBtn"
+                class="secondaryBtn">
 
-autocomplete="off">
+                ギブアップ
 
-<div class="answerButtons">
+            </button>
 
-<button
+        </div>
 
-id="submitAnswer"
-
-class="primaryBtn">
-
-回答する
-
-</button>
-
-<button
-
-id="giveUpBtn"
-
-class="secondaryBtn">
-
-ギブアップ
-
-</button>
+    </div>
 
 </div>
 
-</div>
 
-</div>
 
 <!-- ===========================
 運動前結果
 =========================== -->
 
 <div
-id="beforeMemoryResultScreen"
-class="screen hidden">
+    id="beforeMemoryResultScreen"
+    class="screen hidden">
 
-<div class="memoryResultCard">
+    <div class="memoryResultCard">
 
-<h2>
+        <h2>
 
-運動前記憶テスト結果
+            運動前記憶テスト結果
 
-</h2>
+        </h2>
 
-<p class="memoryResultMain">
+        <p class="memoryResultMain">
 
-あなたは
+            あなたは
 
-<span id="beforeRate">
+            <span id="beforeRate">
 
-0
+                0
 
-</span>
+            </span>
 
-%
+            %
 
-覚えることができました！
+            覚えることができました！
 
-</p>
+        </p>
 
-<p class="memoryResultSub">
+        <p class="memoryResultSub">
 
-正解数
+            正解数
 
-<span id="beforeCorrect">
+            <span id="beforeCorrect">
 
-0 / 20
+                0 / 20
 
-</span>
+            </span>
 
-</p>
+        </p>
 
-<button
+        <button
+            id="startTrainingBtn"
+            class="primaryBtn">
 
-id="startTrainingBtn"
+            20分間の運動を開始
 
-class="primaryBtn">
+        </button>
 
-20分間の運動を開始
-
-</button>
-
-</div>
+    </div>
 
 </div>
 <!-- ===========================
@@ -355,8 +823,8 @@ class="primaryBtn">
 =========================== -->
 
 <div
-id="trainingScreen"
-class="screen hidden trainingScreen">
+    id="trainingScreen"
+    class="screen hidden trainingScreen">
 
     <!-- カメラ -->
     <video
@@ -364,15 +832,11 @@ class="screen hidden trainingScreen">
         autoplay
         playsinline
         muted
-        disablePictureInPicture
         style="display:none;">
     </video>
 
     <!-- 骨格描画 -->
-    <canvas
-        id="canvas"
-        willReadFrequently="true">
-    </canvas>
+    <canvas id="canvas"></canvas>
 
     <!-- 安全メッセージ -->
     <div
@@ -387,7 +851,6 @@ class="screen hidden trainingScreen">
     <div
         id="warning"
         class="warning">
-
     </div>
 
     <!-- 現在の運動 -->
@@ -413,7 +876,7 @@ class="screen hidden trainingScreen">
 
     </div>
 
-    <!-- 運動進行状況 -->
+    <!-- 進行状況 -->
     <div id="trainingProgress">
 
         <div class="progressTitle">
@@ -429,8 +892,7 @@ class="screen hidden trainingScreen">
         </div>
 
     </div>
-
-    <!-- ステータス -->
+        <!-- ステータス -->
     <div
         id="statsPanel"
         class="statsPanel">
@@ -438,7 +900,9 @@ class="screen hidden trainingScreen">
         <div class="statCard">
 
             <div class="label">
+
                 スクワット
+
             </div>
 
             <div
@@ -454,7 +918,9 @@ class="screen hidden trainingScreen">
         <div class="statCard">
 
             <div class="label">
+
                 ジャンプ
+
             </div>
 
             <div
@@ -470,7 +936,9 @@ class="screen hidden trainingScreen">
         <div class="statCard">
 
             <div class="label">
+
                 消費kcal
+
             </div>
 
             <div
@@ -509,9 +977,8 @@ class="screen hidden trainingScreen">
     </button>
 
 </div>
-
 <!-- ===========================
-運動後記憶テスト結果
+運動後結果画面
 =========================== -->
 
 <div
@@ -693,8 +1160,7 @@ class="screen hidden">
             </div>
 
         </div>
-
-        <div class="resultComment">
+                <div class="resultComment">
 
             お疲れ様でした！<br>
 
@@ -717,12 +1183,991 @@ class="screen hidden">
 
 </div>
 
+
 <!-- ===========================
-app.js
+JavaScript
 =========================== -->
 
-<script src="app.js"></script>
+<script>
+
+// ========= 定数 =========
+
+const MEMORY_LENGTH = 20;
+const MEMORY_TIME = 15;
+const COUNTDOWN = 10;
+const TRAINING_TIME = 20 * 60;
+
+// ========= DOM =========
+
+const screens = [
+setupScreen,
+loadingScreen,
+countdownScreen,
+memoryScreen,
+answerScreen,
+beforeMemoryResultScreen,
+trainingScreen,
+resultScreen
+];
+
+// ========= 状態 =========
+
+let phase = "before";
+
+let memoryDigits = "";
+
+let beforeCorrect = 0;
+let afterCorrect = 0;
+
+let squatCount = 0;
+let jumpCount = 0;
+let calories = 0;
+
+let detector = null;
+let running = false;
+
+
+// ========= 画面切替 =========
+
+function showScreen(id){
+
+    screens.forEach(s=>s.classList.add("hidden"));
+
+    document
+    .getElementById(id)
+    .classList
+    .remove("hidden");
+
+}
+// ========= ランダム20桁生成 =========
+
+function createDigits(){
+
+    let s="";
+
+    for(let i=0;i<MEMORY_LENGTH;i++){
+
+        s+=Math.floor(Math.random()*10);
+
+    }
+
+    return s;
+
+}
+
+
+
+// ========= 開始ボタン =========
+
+startBtn.onclick=()=>{
+
+    memoryDigits=createDigits();
+
+    showScreen("countdownScreen");
+
+    let sec=COUNTDOWN;
+
+    countdownNumber.textContent=sec;
+
+    const timer=setInterval(()=>{
+
+        sec--;
+
+        countdownNumber.textContent=sec;
+
+        if(sec<=0){
+
+            clearInterval(timer);
+
+            startMemoryTest();
+
+        }
+
+    },1000);
+
+};
+
+
+
+// ========= 記憶テスト =========
+
+function startMemoryTest(){
+
+    showScreen("memoryScreen");
+
+    memoryDigits.textContent=window.memoryDigits;
+
+    let sec=MEMORY_TIME;
+
+    memoryTimer.textContent=sec;
+
+    const timer=setInterval(()=>{
+
+        sec--;
+
+        memoryTimer.textContent=sec;
+
+        if(sec<=0){
+
+            clearInterval(timer);
+
+            showScreen("answerScreen");
+
+            memoryAnswerInput.value="";
+
+            memoryAnswerInput.focus();
+
+        }
+
+    },1000);
+
+}
+
+
+
+// ========= 採点 =========
+
+submitAnswer.onclick=()=>{
+
+    const ans=memoryAnswerInput.value;
+
+    let correct=0;
+
+    for(let i=0;i<Math.min(ans.length,window.memoryDigits.length);i++){
+
+        if(ans[i]===window.memoryDigits[i]){
+
+            correct++;
+
+        }
+
+    }
+
+    if(phase==="before"){
+
+        beforeCorrect=correct;
+
+        beforeRate.textContent=
+        Math.round(correct/20*100);
+
+        document
+        .getElementById("beforeCorrect")
+        .textContent=
+        correct+" / 20";
+
+        showScreen("beforeMemoryResultScreen");
+
+    }
+
+};
+
+
+
+// ========= ギブアップ =========
+
+giveUpBtn.onclick=()=>{
+
+    memoryAnswerInput.value="";
+
+    submitAnswer.click();
+
+};
+// ========= 運動開始 =========
+
+startTrainingBtn.onclick = async()=>{
+
+    showScreen("loadingScreen");
+
+    loadingText.textContent="カメラを起動しています...";
+
+    const stream =
+    await navigator.mediaDevices.getUserMedia({
+
+        video:{
+            facingMode:"user"
+        }
+
+    });
+
+    video.srcObject = stream;
+
+    await video.play();
+
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    loadingText.textContent="MoveNetを読み込んでいます...";
+
+    await tf.setBackend("webgl");
+    await tf.ready();
+
+    detector =
+    await poseDetection.createDetector(
+
+        poseDetection.SupportedModels.MoveNet,
+
+        {
+            modelType:
+            poseDetection.movenet.modelType
+            .SINGLEPOSE_LIGHTNING
+        }
+
+    );
+
+    showScreen("trainingScreen");
+
+    running=true;
+
+    poseLoop();
+
+};
+
+
+
+// ========= 推論 =========
+
+async function poseLoop(){
+
+    if(!running)return;
+
+    const poses=
+    await detector.estimatePoses(video);
+
+    const ctx=
+    canvas.getContext("2d");
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    ctx.drawImage(
+        video,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    if(poses.length){
+
+        // ここにスクワット判定
+        // ジャンプ判定
+        // 骨格描画
+        // kcal計算
+        // FPS表示
+        // を追加予定
+
+    }
+
+    requestAnimationFrame(poseLoop);
+
+}
+
+
+
+// ========= リセット =========
+
+resetBtn.onclick=()=>{
+
+    location.reload();
+
+};
+
+restartBtn.onclick=()=>{
+
+    location.reload();
+
+};
+
+
+
+// ========= 初期画面 =========
+
+showScreen("setupScreen");
+
+</script>
 
 </body>
 
 </html>
+// ======================================
+// Part11
+// 骨格描画・全身判定
+// ======================================
+
+// 骨格接続
+const skeleton = [
+
+[5,7],[7,9],
+[6,8],[8,10],
+
+[5,6],
+
+[5,11],
+[6,12],
+
+[11,12],
+
+[11,13],
+[13,15],
+
+[12,14],
+[14,16]
+
+];
+
+
+
+// 全身判定
+function isFullBody(keypoints){
+
+    const ids=[
+        0,
+        5,6,
+        11,12,
+        13,14,
+        15,16
+    ];
+
+    for(const i of ids){
+
+        if(!keypoints[i]){
+
+            return false;
+
+        }
+
+        if(keypoints[i].score<0.3){
+
+            return false;
+
+        }
+
+    }
+
+    return true;
+
+}
+
+
+
+// 骨格描画
+function drawSkeleton(keypoints){
+
+    const w=canvas.width;
+
+    ctx.lineWidth=4;
+    ctx.strokeStyle="#00ffff";
+
+    for(const bone of skeleton){
+
+        const p1=keypoints[bone[0]];
+        const p2=keypoints[bone[1]];
+
+        if(p1.score<0.3)continue;
+        if(p2.score<0.3)continue;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+
+            w-p1.x,
+            p1.y
+
+        );
+
+        ctx.lineTo(
+
+            w-p2.x,
+            p2.y
+
+        );
+
+        ctx.stroke();
+
+    }
+
+    for(const p of keypoints){
+
+        if(p.score<0.3)continue;
+
+        ctx.beginPath();
+
+        ctx.fillStyle="#ffff00";
+
+        ctx.arc(
+
+            w-p.x,
+            p.y,
+            6,
+            0,
+            Math.PI*2
+
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+
+
+// poseLoopへ追加
+if(poses.length){
+
+    const keypoints=
+    poses[0].keypoints;
+
+    if(!isFullBody(keypoints)){
+
+        warning.textContent=
+        "全身が映っていません";
+
+    }else{
+
+        warning.textContent="";
+
+        drawSkeleton(keypoints);
+
+    }
+
+}
+// ======================================
+// Part12
+// 膝角度計算・スクワット判定
+// ======================================
+
+// スクワット状態
+let squatState = "UP";
+
+// スクワット判定角度
+const SQUAT_DOWN = 105;
+const SQUAT_UP   = 160;
+
+
+// 3点から角度を求める
+function getAngle(a,b,c){
+
+    const abx = a.x - b.x;
+    const aby = a.y - b.y;
+
+    const cbx = c.x - b.x;
+    const cby = c.y - b.y;
+
+    const dot =
+    abx*cbx + aby*cby;
+
+    const ab =
+    Math.sqrt(abx*abx + aby*aby);
+
+    const cb =
+    Math.sqrt(cbx*cbx + cby*cby);
+
+    if(ab===0 || cb===0){
+
+        return 180;
+
+    }
+
+    let cos = dot/(ab*cb);
+
+    cos=Math.max(-1,Math.min(1,cos));
+
+    return Math.acos(cos)*180/Math.PI;
+
+}
+
+
+
+// 左右膝角度平均
+function getKneeAngle(keypoints){
+
+    const lh = keypoints[11];
+    const lk = keypoints[13];
+    const la = keypoints[15];
+
+    const rh = keypoints[12];
+    const rk = keypoints[14];
+    const ra = keypoints[16];
+
+    if(
+        lh.score<0.3 ||
+        lk.score<0.3 ||
+        la.score<0.3 ||
+
+        rh.score<0.3 ||
+        rk.score<0.3 ||
+        ra.score<0.3
+    ){
+
+        return null;
+
+    }
+
+    const left = getAngle(
+
+        lh,
+        lk,
+        la
+
+    );
+
+    const right = getAngle(
+
+        rh,
+        rk,
+        ra
+
+    );
+
+    return (left+right)/2;
+
+}
+
+
+
+// スクワット判定
+function detectSquat(keypoints){
+
+    const angle =
+    getKneeAngle(keypoints);
+
+    if(angle===null){
+
+        return;
+
+    }
+
+    // しゃがむ
+    if(
+
+        squatState==="UP" &&
+        angle<SQUAT_DOWN
+
+    ){
+
+        squatState="DOWN";
+
+    }
+
+    // 立つ
+    if(
+
+        squatState==="DOWN" &&
+        angle>SQUAT_UP
+
+    ){
+
+        squatState="UP";
+
+        squatCount++;
+
+        calories+=0.32;
+
+        sq.textContent =
+        squatCount;
+
+        kcal.textContent =
+        calories.toFixed(1);
+
+    }
+
+}
+
+
+
+// poseLoopへ追加
+if(isFullBody(keypoints)){
+
+    drawSkeleton(keypoints);
+
+    detectSquat(keypoints);
+
+}
+// ======================================
+// Part13
+// ジャンプ判定（誤検知防止版）
+// ======================================
+
+// ジャンプ判定用
+let prevHipY = null;
+let prevAnkleY = null;
+let jumpCooldown = 0;
+
+// しきい値
+const JUMP_HIP_THRESHOLD = 0.055;
+const JUMP_ANKLE_THRESHOLD = 0.040;
+const JUMP_COOLDOWN = 12;
+
+
+// 腰・足首の平均Y取得
+function getBodyPosition(keypoints){
+
+    const lHip = keypoints[11];
+    const rHip = keypoints[12];
+
+    const lAnkle = keypoints[15];
+    const rAnkle = keypoints[16];
+
+    if(
+        lHip.score<0.3 ||
+        rHip.score<0.3 ||
+        lAnkle.score<0.3 ||
+        rAnkle.score<0.3
+    ){
+        return null;
+    }
+
+    return{
+
+        hipY:
+        (lHip.y+rHip.y)/2,
+
+        ankleY:
+        (lAnkle.y+rAnkle.y)/2
+
+    };
+
+}
+
+
+
+// ジャンプ判定
+function detectJump(keypoints){
+
+    const body =
+    getBodyPosition(keypoints);
+
+    if(body==null){
+
+        prevHipY = null;
+        prevAnkleY = null;
+
+        return;
+
+    }
+
+    if(prevHipY==null){
+
+        prevHipY = body.hipY;
+        prevAnkleY = body.ankleY;
+
+        return;
+
+    }
+
+    const hipMove =
+    (prevHipY-body.hipY)/canvas.height;
+
+    const ankleMove =
+    (prevAnkleY-body.ankleY)/canvas.height;
+
+    prevHipY = body.hipY;
+    prevAnkleY = body.ankleY;
+
+    if(jumpCooldown>0){
+
+        jumpCooldown--;
+
+        return;
+
+    }
+
+    if(
+
+        hipMove>JUMP_HIP_THRESHOLD &&
+        ankleMove>JUMP_ANKLE_THRESHOLD
+
+    ){
+
+        jumpCooldown =
+        JUMP_COOLDOWN;
+
+        jumpCount++;
+
+        calories += 0.45;
+
+        jp.textContent =
+        jumpCount;
+
+        kcal.textContent =
+        calories.toFixed(1);
+
+    }
+
+}
+
+
+
+// poseLoopへ追加
+if(isFullBody(keypoints)){
+
+    warning.textContent="";
+
+    drawSkeleton(keypoints);
+
+    detectSquat(keypoints);
+
+    detectJump(keypoints);
+
+}else{
+
+    warning.textContent=
+    "全身が映っていません";
+
+    prevHipY = null;
+    prevAnkleY = null;
+    jumpCooldown = 0;
+
+}
+// ======================================
+// Part14
+// 20分タイマー・運動終了
+// ======================================
+
+// 運動時間（20分）
+const TRAINING_SECONDS = 20 * 60;
+
+let remainSeconds = TRAINING_SECONDS;
+let trainingTimer = null;
+
+
+// 運動開始時に呼ぶ
+function startTrainingTimer(){
+
+    remainSeconds = TRAINING_SECONDS;
+
+    updateTrainingTime();
+
+    trainingTimer = setInterval(()=>{
+
+        remainSeconds--;
+
+        updateTrainingTime();
+
+        if(remainSeconds<=0){
+
+            clearInterval(trainingTimer);
+
+            finishTraining();
+
+        }
+
+    },1000);
+
+}
+
+
+
+// 残り時間表示
+function updateTrainingTime(){
+
+    const min =
+    Math.floor(remainSeconds/60);
+
+    const sec =
+    remainSeconds%60;
+
+    exerciseTarget.textContent =
+    "残り " +
+    String(min).padStart(2,"0") +
+    ":" +
+    String(sec).padStart(2,"0");
+
+}
+
+
+
+// 運動終了
+function finishTraining(){
+
+    running = false;
+
+    if(trainingTimer){
+
+        clearInterval(trainingTimer);
+
+    }
+
+    // 運動後記憶テストへ
+    phase = "after";
+
+    showScreen("countdownScreen");
+
+    let sec = 10;
+
+    countdownNumber.textContent = sec;
+
+    const timer = setInterval(()=>{
+
+        sec--;
+
+        countdownNumber.textContent = sec;
+
+        if(sec<=0){
+
+            clearInterval(timer);
+
+            startMemoryTest();
+
+        }
+
+    },1000);
+
+}
+
+
+
+// 運動開始時に追加
+startTrainingTimer();
+
+
+
+// poseLoopの最後
+if(running){
+
+    requestAnimationFrame(poseLoop);
+
+}
+
+// ======================================
+// Part15
+// 運動後記憶テスト・結果画面
+// ======================================
+
+// submitAnswer を置き換える
+submitAnswer.onclick = ()=>{
+
+    const answer =
+    memoryAnswerInput.value.trim();
+
+    let correct = 0;
+
+    for(
+        let i=0;
+        i<Math.min(answer.length,memoryDigits.length);
+        i++
+    ){
+
+        if(answer[i]===memoryDigits[i]){
+
+            correct++;
+
+        }
+
+    }
+
+    // ------------------------
+    // 運動前
+    // ------------------------
+    if(phase==="before"){
+
+        beforeCorrect = correct;
+
+        const rate =
+        Math.round(correct/MEMORY_LENGTH*100);
+
+        beforeRate.textContent = rate;
+
+        document.getElementById(
+            "beforeCorrect"
+        ).textContent =
+        correct+" / "+MEMORY_LENGTH;
+
+        showScreen(
+            "beforeMemoryResultScreen"
+        );
+
+        return;
+
+    }
+
+    // ------------------------
+    // 運動後
+    // ------------------------
+    afterCorrect = correct;
+
+    const beforePercent =
+    Math.round(
+        beforeCorrect/MEMORY_LENGTH*100
+    );
+
+    const afterPercent =
+    Math.round(
+        afterCorrect/MEMORY_LENGTH*100
+    );
+
+    const improve =
+    afterPercent-beforePercent;
+
+    // 結果画面
+    document.getElementById(
+        "beforeCorrectResult"
+    ).textContent =
+    beforeCorrect+" / "+MEMORY_LENGTH;
+
+    document.getElementById(
+        "afterCorrectResult"
+    ).textContent =
+    afterCorrect+" / "+MEMORY_LENGTH;
+
+    document.getElementById(
+        "beforeRateResult"
+    ).textContent =
+    beforePercent+"%";
+
+    document.getElementById(
+        "afterRateResult"
+    ).textContent =
+    afterPercent+"%";
+
+    document.getElementById(
+        "improveRate"
+    ).textContent =
+    (improve>=0?"+":"")+improve+"%";
+
+    resultSquat.textContent =
+    squatCount+"回";
+
+    resultJump.textContent =
+    jumpCount+"回";
+
+    resultKcal.textContent =
+    calories.toFixed(1)+" kcal";
+
+    showScreen("resultScreen");
+
+};
+
+
+
+// ギブアップ
+giveUpBtn.onclick=()=>{
+
+    memoryAnswerInput.value="";
+
+    submitAnswer.click();
+
+};
+
+
+
+// もう一度実験する
+restartBtn.onclick=()=>{
+
+    location.reload();
+
+};
+
+
+
+// 最初に戻る
+resetBtn.onclick=()=>{
+
+    location.reload();
+
+};
+
+
+
+// 初期表示
+showScreen("setupScreen");
