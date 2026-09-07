@@ -11,7 +11,6 @@ const memoryDigits = $("memoryDigits"), memoryTimer = $("memoryTimer"), memoryAn
 const submitAnswerBtn = $("submitAnswer"), giveUpBtn = $("giveUpBtn"), beforeRate = $("beforeRate"), beforeCorrect = $("beforeCorrect");
 const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
-const exerciseDemo = $("exerciseDemo");
 const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn");
 const beforeCorrectResult = $("beforeCorrectResult"), beforeRateResult = $("beforeRateResult");
 const afterCorrectResult = $("afterCorrectResult"), afterRateResult = $("afterRateResult"), improveRate = $("improveRate");
@@ -65,7 +64,9 @@ function startCountdown() {
     }, 1000);
 }
 function startMemory() {
-    showScreen(memoryScreen); memoryDigits.textContent = randomDigits; let seconds = MEMORY_TIME; memoryTimer.textContent = seconds;
+    showScreen(memoryScreen);
+    memoryDigits.textContent = randomDigits.slice(0, 10) + "\n" + randomDigits.slice(10);
+    let seconds = MEMORY_TIME; memoryTimer.textContent = seconds;
     memoryTimerId = setInterval(() => {
         memoryTimer.textContent = --seconds;
         if (seconds <= 0) { clearInterval(memoryTimerId); memoryTimerId = null; showAnswer(); }
@@ -116,7 +117,6 @@ function startTraining() {
 }
 function startExercise() {
     const exercise = exercises[currentExercise]; remainExerciseTime = EXERCISE_TIME; exerciseName.textContent = exercise.name;
-    exerciseDemo.dataset.exercise = exercise.type;
     progressText.textContent = (completedExercises + 1) + " / " + TOTAL_EXERCISES + " セット";
     exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒"; clearInterval(trainingTimer);
     trainingTimer = setInterval(() => {
