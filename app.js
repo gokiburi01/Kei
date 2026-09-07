@@ -1,5 +1,5 @@
 const INTRO_COUNTDOWN = 10, MEMORY_TIME = 15, MEMORY_LENGTH = 20;
-const EXERCISE_TIME = 40, TOTAL_EXERCISES = 30, SCORE_THRESHOLD = 0.3;
+const EXERCISE_TIME = 40, TOTAL_EXERCISES = 30, GOAL_REPS = 15, SCORE_THRESHOLD = 0.3;
 const $ = (id) => document.getElementById(id);
 const setupScreen = $("setupScreen"), loadingScreen = $("loadingScreen"), countdownScreen = $("countdownScreen");
 const memoryScreen = $("memoryScreen"), answerScreen = $("answerScreen"), beforeMemoryResultScreen = $("beforeMemoryResultScreen");
@@ -11,6 +11,7 @@ const memoryDigits = $("memoryDigits"), memoryTimer = $("memoryTimer"), memoryAn
 const submitAnswerBtn = $("submitAnswer"), giveUpBtn = $("giveUpBtn"), beforeRate = $("beforeRate"), beforeCorrect = $("beforeCorrect");
 const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
+const exerciseGoal = $("exerciseGoal");
 const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn");
 const beforeCorrectResult = $("beforeCorrectResult"), beforeRateResult = $("beforeRateResult");
 const afterCorrectResult = $("afterCorrectResult"), afterRateResult = $("afterRateResult"), improveRate = $("improveRate");
@@ -24,7 +25,7 @@ const skeleton = [[5,7],[7,9],[6,8],[8,10],[5,6],[5,11],[6,12],[11,12],[11,13],[
 let phase = "before", randomDigits = "";
 let beforeCorrectCount = 0, afterCorrectCount = 0, beforeScore = 0, afterScore = 0, improveScore = 0;
 let detector = null, cameraStream = null, running = false;
-let squatCount = 0, jumpCount = 0, calorie = 0, currentExercise = 0, completedExercises = 0, remainExerciseTime = EXERCISE_TIME;
+let walkCount = 0, highKneeCount = 0, squatCount = 0, jumpCount = 0, calorie = 0, currentExercise = 0, completedExercises = 0, remainExerciseTime = EXERCISE_TIME;
 let squatState = "UP", walkState = false, kneeState = false, jumpCooldown = 0, prevHipY = null;
 let countdownTimer = null, memoryTimerId = null, trainingTimer = null, animationId = null, fpsFrame = 0, lastFpsTime = performance.now();
 
@@ -39,7 +40,7 @@ function resetMemory() {
     memoryAnswerInput.value = "";
 }
 function resetTraining() {
-    running = false; squatCount = jumpCount = calorie = currentExercise = completedExercises = 0;
+    running = false; walkCount = highKneeCount = squatCount = jumpCount = calorie = currentExercise = completedExercises = 0;
     remainExerciseTime = EXERCISE_TIME; squatState = "UP"; walkState = kneeState = false; jumpCooldown = 0; prevHipY = null;
     updateTrainingUI();
 }
@@ -117,6 +118,7 @@ function startTraining() {
 }
 function startExercise() {
     const exercise = exercises[currentExercise]; remainExerciseTime = EXERCISE_TIME; exerciseName.textContent = exercise.name;
+    updateExerciseGoal();
     progressText.textContent = (completedExercises + 1) + " / " + TOTAL_EXERCISES + " セット";
     exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒"; clearInterval(trainingTimer);
     trainingTimer = setInterval(() => {
@@ -164,6 +166,23 @@ function executeExercise(points) {
         case "walk": detectAirWalk(points); break; case "highKnee": detectHighKnee(points); break;
         case "squat": detectSquat(points); break; case "jump": detectJump(points); break;
     }
+    updateExerciseGoal();
+}
+function currentExerciseCount() {
+    switch (exercises[currentExercise].type) {
+        case "walk": return walkCount;
+        case "highKnee": return highKneeCount;
+        case "squat": return squatCount;
+        case "jump": return jumpCount;
+        default: return 0;
+    }
+}
+function updateExerciseGoal() {
+    const count = currentExerciseCount();
+    exerciseGoal.textContent = count >= GOAL_REPS
+        ? "クリア！ " + count + "回　そのまま続けてもよいです"
+        : "目標 " + GOAL_REPS + "回　現在 " + count + "回";
+    exerciseGoal.classList.toggle("isCleared", count >= GOAL_REPS);
 }
 function getAngle(a, b, c) {
     const ab = { x: a.x - b.x, y: a.y - b.y }, cb = { x: c.x - b.x, y: c.y - b.y };
@@ -188,13 +207,13 @@ function detectAirWalk(points) {
     const [left,right] = [points[15],points[16]];
     if (![left,right].every((point) => point.score >= SCORE_THRESHOLD)) return;
     const difference = Math.abs(left.y - right.y);
-    if (difference > 35 && !walkState) { walkState = true; calorie += 0.03; }
+    if (difference > 35 && !walkState) { walkState = true; walkCount += 1; calorie += 0.03; }
     if (difference < 15) walkState = false;
 }
 function detectHighKnee(points) {
     const [hip,knee] = [points[11],points[13]];
     if (![hip,knee].every((point) => point.score >= SCORE_THRESHOLD)) return;
-    if (knee.y < hip.y && !kneeState) { kneeState = true; calorie += 0.05; }
+    if (knee.y < hip.y && !kneeState) { kneeState = true; highKneeCount += 1; calorie += 0.05; }
     if (knee.y > hip.y) kneeState = false;
 }
 function updateFPS() {
