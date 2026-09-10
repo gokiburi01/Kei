@@ -625,9 +625,13 @@ select:focus{
 
 #exerciseTarget{
 
-    font-size:1.2rem;
+    font-size:1.8rem;
 
-    color:#444;
+    font-weight:800;
+
+    color:#b71c1c;
+
+    line-height:1.35;
 
 }
 
@@ -1363,6 +1367,21 @@ End
 
 #exerciseTarget{
     color:#202020;
+}
+
+/* グーパー運動の指示は、カメラ映像の上でも一目で読める大きさにする */
+#exerciseTarget{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    font-size:clamp(1.45rem,2.35vw,2.35rem);
+    font-weight:800;
+    color:#a80000;
+    line-height:1.35;
+}
+
+#exerciseTarget.openHand{
+    color:#0059a8;
 }
 
 #trainingProgress,

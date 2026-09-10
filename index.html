@@ -18,6 +18,11 @@
 <!-- MoveNet -->
 <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 
+<!-- MediaPipe Hands: 指の曲がりを検出してグーパー運動を判定 -->
+<script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
 <!-- アプリ -->
 <script defer src="app.js"></script>
 
@@ -336,11 +341,11 @@ Part2
         </div>
 
         <div id="exerciseName">
-            エアウォーキング
+            グーパー運動
         </div>
 
         <div id="exerciseTarget">
-            残り40秒
+            握ってください
         </div>
 
     </div>

@@ -18,15 +18,16 @@ const afterCorrectResult = $("afterCorrectResult"), afterRateResult = $("afterRa
 const resultSquat = $("resultSquat"), resultJump = $("resultJump"), resultKcal = $("resultKcal"), restartBtn = $("restartBtn");
 
 const exercises = [
-    { name: "エアウォーキング", type: "walk" }, { name: "もも上げ", type: "highKnee" },
+    { name: "グーパー運動", type: "grip" }, { name: "もも上げ", type: "highKnee" },
     { name: "スクワット", type: "squat" }, { name: "ジャンプ", type: "jump" }
 ];
 const skeleton = [[5,7],[7,9],[6,8],[8,10],[5,6],[5,11],[6,12],[11,12],[11,13],[13,15],[12,14],[14,16]];
 let phase = "before", randomDigits = "";
 let beforeCorrectCount = 0, afterCorrectCount = 0, beforeScore = 0, afterScore = 0, improveScore = 0;
-let detector = null, cameraStream = null, running = false;
-let walkCount = 0, highKneeCount = 0, squatCount = 0, jumpCount = 0, calorie = 0, currentExercise = 0, completedExercises = 0, remainExerciseTime = EXERCISE_TIME;
-let squatState = "UP", walkState = false, kneeState = false, jumpCooldown = 0, prevHipY = null;
+let detector = null, handDetector = null, cameraStream = null, running = false;
+let gripCount = 0, highKneeCount = 0, squatCount = 0, jumpCount = 0, calorie = 0, currentExercise = 0, completedExercises = 0, remainExerciseTime = EXERCISE_TIME;
+let squatState = "UP", kneeState = false, jumpCooldown = 0, prevHipY = null;
+let handLandmarks = [], handDetectionPending = false, gripPhase = "closed", gripPhaseEndsAt = 0, gripPhaseValidated = false, gripStableFrames = 0;
 let countdownTimer = null, memoryTimerId = null, trainingTimer = null, animationId = null, fpsFrame = 0, lastFpsTime = performance.now();
 
 function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
@@ -40,8 +41,9 @@ function resetMemory() {
     memoryAnswerInput.value = "";
 }
 function resetTraining() {
-    running = false; walkCount = highKneeCount = squatCount = jumpCount = calorie = currentExercise = completedExercises = 0;
-    remainExerciseTime = EXERCISE_TIME; squatState = "UP"; walkState = kneeState = false; jumpCooldown = 0; prevHipY = null;
+    running = false; gripCount = highKneeCount = squatCount = jumpCount = calorie = currentExercise = completedExercises = 0;
+    remainExerciseTime = EXERCISE_TIME; squatState = "UP"; kneeState = false; jumpCooldown = 0; prevHipY = null;
+    handLandmarks = []; handDetectionPending = false; gripStableFrames = 0;
     updateTrainingUI();
 }
 function updateTrainingUI() { sq.textContent = squatCount; jp.textContent = jumpCount; kcal.textContent = calorie.toFixed(1); }
@@ -88,7 +90,7 @@ async function prepareTraining() {
     showScreen(loadingScreen);
     try {
         loadingText.textContent = "カメラを起動しています..."; await setupCamera();
-        loadingText.textContent = "AIを読み込んでいます..."; await setupDetector(); startTraining();
+        loadingText.textContent = "AIを読み込んでいます..."; await setupDetector(); await setupHandDetector(); startTraining();
     } catch (error) {
         console.error("トレーニングの準備に失敗しました", error);
         loadingText.textContent = "カメラまたはAIを開始できませんでした。カメラの許可と通信状態を確認してください。";
@@ -112,17 +114,40 @@ async function setupDetector() {
     await tf.setBackend("webgl"); await tf.ready();
     detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING });
 }
+async function setupHandDetector() {
+    if (handDetector) return;
+    if (!window.Hands) throw new Error("手の検出AIの読み込みに失敗しました");
+    handDetector = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+    handDetector.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.75,
+        minTrackingConfidence: 0.75,
+        selfieMode: true
+    });
+    handDetector.onResults((results) => {
+        handLandmarks = results.multiHandLandmarks || [];
+        handDetectionPending = false;
+    });
+}
 function startTraining() {
     showScreen(trainingScreen); running = true; fpsFrame = 0; lastFpsTime = performance.now(); startExercise();
     animationId = requestAnimationFrame(poseLoop);
 }
 function startExercise() {
     const exercise = exercises[currentExercise]; remainExerciseTime = EXERCISE_TIME; exerciseName.textContent = exercise.name;
+    if (exercise.type === "grip") {
+        gripPhase = "closed"; gripPhaseEndsAt = performance.now() + 5000;
+        gripPhaseValidated = false; gripStableFrames = 0; updateGripInstruction();
+    }
     updateExerciseGoal();
     progressText.textContent = (completedExercises + 1) + " / " + TOTAL_EXERCISES + " セット";
-    exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒"; clearInterval(trainingTimer);
+    if (exercise.type !== "grip") exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒";
+    clearInterval(trainingTimer);
     trainingTimer = setInterval(() => {
-        remainExerciseTime -= 1; exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒";
+        remainExerciseTime -= 1;
+        if (exercise.type === "grip") updateGripPhase(performance.now());
+        else exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒";
         if (remainExerciseTime <= 0) nextExercise();
     }, 1000);
 }
@@ -139,11 +164,16 @@ function showWarning(message) { warning.textContent = message; warning.style.dis
 function isFullBodyVisible(points) {
     return [0,5,6,11,12,13,14,15,16].every((index) => points[index]?.score >= SCORE_THRESHOLD);
 }
+function isGripPoseVisible(points) {
+    return [5,6,9,10].every((index) => points[index]?.score >= SCORE_THRESHOLD);
+}
 async function poseLoop() {
     if (!running) return;
     try {
         const poses = await detector.estimatePoses(video); drawCamera();
+        if (exercises[currentExercise]?.type === "grip") requestHandDetection();
         if (!poses.length) showWarning("人物を検出できません");
+        else if (exercises[currentExercise]?.type === "grip" && !isGripPoseVisible(poses[0].keypoints)) showWarning("両手を肩の前でカメラに向けてください");
         else if (!isFullBodyVisible(poses[0].keypoints)) showWarning("全身が画面に入る位置へ移動してください");
         else { showWarning(""); drawSkeleton(poses[0].keypoints); executeExercise(poses[0].keypoints); }
         updateTrainingUI(); updateFPS();
@@ -163,14 +193,14 @@ function drawSkeleton(points) {
 }
 function executeExercise(points) {
     switch (exercises[currentExercise].type) {
-        case "walk": detectAirWalk(points); break; case "highKnee": detectHighKnee(points); break;
+        case "grip": detectGrip(); break; case "highKnee": detectHighKnee(points); break;
         case "squat": detectSquat(points); break; case "jump": detectJump(points); break;
     }
     updateExerciseGoal();
 }
 function currentExerciseCount() {
     switch (exercises[currentExercise].type) {
-        case "walk": return walkCount;
+        case "grip": return gripCount;
         case "highKnee": return highKneeCount;
         case "squat": return squatCount;
         case "jump": return jumpCount;
@@ -203,12 +233,60 @@ function detectJump(points) {
     if (prevHipY - hip.y > 35) { jumpCount += 1; calorie += 0.45; jumpCooldown = 15; }
     prevHipY = hip.y;
 }
-function detectAirWalk(points) {
-    const [left,right] = [points[15],points[16]];
-    if (![left,right].every((point) => point.score >= SCORE_THRESHOLD)) return;
-    const difference = Math.abs(left.y - right.y);
-    if (difference > 35 && !walkState) { walkState = true; walkCount += 1; calorie += 0.03; }
-    if (difference < 15) walkState = false;
+function requestHandDetection() {
+    if (!handDetector || handDetectionPending) return;
+    handDetectionPending = true;
+    handDetector.send({ image: video }).catch((error) => {
+        console.error("手の検出に失敗しました", error);
+        handDetectionPending = false;
+    });
+}
+function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+function handGesture(landmarks) {
+    // 手の大きさに対する指先距離と、4本の指の第2関節の角度を組み合わせる。
+    // どちらか一方だけでは誤判定しやすいため、両方を満たす時だけ確定する。
+    const palmWidth = Math.max(distance(landmarks[5], landmarks[17]), 0.001);
+    const fingers = [[5,6,8], [9,10,12], [13,14,16], [17,18,20]];
+    const tipDistance = fingers.reduce((sum, [, , tip]) => sum + distance(landmarks[tip], landmarks[0]), 0) / fingers.length / palmWidth;
+    const angles = fingers.map(([base, joint, tip]) => getAngle(landmarks[base], landmarks[joint], landmarks[tip]));
+    const bentFingers = angles.filter((angle) => angle < 125).length;
+    const straightFingers = angles.filter((angle) => angle > 150).length;
+    if (tipDistance < 1.45 && bentFingers >= 3) return "closed";
+    if (tipDistance > 1.9 && straightFingers >= 3) return "open";
+    return "unknown";
+}
+function detectGrip() {
+    if (handLandmarks.length !== 2) {
+        gripStableFrames = 0;
+        showWarning("両手を前に出し、手のひらをカメラに向けてください");
+        return;
+    }
+    const states = handLandmarks.map(handGesture);
+    const expected = gripPhase;
+    if (states.every((state) => state === expected)) {
+        gripStableFrames += 1;
+        if (gripStableFrames >= 6) gripPhaseValidated = true;
+    } else {
+        gripStableFrames = 0;
+        showWarning(gripPhase === "closed" ? "両手をしっかり握ってください" : "両手の指を大きく開いてください");
+    }
+}
+function updateGripInstruction() {
+    const remaining = Math.max(0, Math.ceil((gripPhaseEndsAt - performance.now()) / 1000));
+    const instruction = gripPhase === "closed" ? "握ってください" : "手を開いてください";
+    exerciseTarget.textContent = `${instruction}（あと ${remaining} 秒）`;
+    exerciseTarget.classList.toggle("openHand", gripPhase === "open");
+}
+function updateGripPhase(now) {
+    if (exercises[currentExercise]?.type !== "grip") return;
+    while (now >= gripPhaseEndsAt) {
+        if (gripPhase === "open" && gripPhaseValidated) { gripCount += 1; calorie += 0.02; }
+        gripPhase = gripPhase === "closed" ? "open" : "closed";
+        gripPhaseEndsAt += 5000;
+        gripPhaseValidated = false; gripStableFrames = 0;
+        updateExerciseGoal();
+    }
+    updateGripInstruction();
 }
 function detectHighKnee(points) {
     const [hip,knee] = [points[11],points[13]];
