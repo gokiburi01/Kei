@@ -1536,3 +1536,36 @@ select:focus-visible{
     .fpsPanel{ right:8px; bottom:8px; padding:7px 10px; }
     .resetBtn{ top:auto; bottom:8px; right:110px; transform:none; padding:8px 11px; font-size:.8rem; }
 }
+
+/* 全身が見える中央領域を最優先し、案内は画面の端に集約する。 */
+@media (min-width:701px){
+    #exercisePanel{
+        top:16px;
+        left:16px;
+        width:clamp(250px, 22vw, 320px);
+        padding:14px 16px;
+        background:rgba(255,255,255,.88);
+    }
+
+    #exerciseName{ font-size:clamp(1.5rem, 2.1vw, 2.3rem); }
+    #exerciseTarget{ font-size:clamp(1.1rem, 1.45vw, 1.45rem); }
+    .exerciseGoal{
+        top:148px;
+        left:16px;
+        width:clamp(250px, 22vw, 320px);
+        padding:9px 12px;
+        font-size:clamp(.95rem, 1.15vw, 1.15rem);
+    }
+
+    #trainingProgress{
+        top:16px;
+        right:16px;
+        width:clamp(170px, 16vw, 230px);
+        padding:14px;
+        background:rgba(255,255,255,.88);
+    }
+
+    .statsPanel{ bottom:16px; left:16px; }
+    .statCard{ width:112px; padding:11px; background:rgba(255,255,255,.88); }
+    .warning{ top:16px; max-width:36vw; text-align:center; }
+}
