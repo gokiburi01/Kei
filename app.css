@@ -1481,3 +1481,58 @@ select:focus-visible{
         top:166px;
     }
 }
+
+/* 小型端末では操作パネルをカメラ映像上で重ねず、指示を優先して表示する。 */
+@media (max-width:700px) and (orientation:portrait){
+    .screen:not(.trainingScreen){
+        min-height:100dvh;
+        height:auto;
+        overflow-y:auto;
+        align-items:flex-start;
+        padding:16px;
+    }
+
+    .setupCard, .loadingBox, .countdownCard, .memoryCard, .answerCard, .memoryResultCard, .resultCard{
+        width:100%;
+        max-width:560px;
+        margin:auto;
+        padding:22px 18px;
+        border-radius:18px;
+    }
+
+    .appTitle, .answerTitle, .memoryResultCard h2, .resultTitle{ font-size:clamp(1.45rem, 7vw, 2rem); }
+    .countdownMessage{ font-size:clamp(1.35rem, 6vw, 1.8rem); margin-bottom:20px; }
+    .countdownNumber{ font-size:clamp(4.5rem, 24vw, 6rem); }
+    .memoryResultMain{ font-size:clamp(1.35rem, 6vw, 1.8rem); }
+
+    .safetyMessage, .warning{
+        left:12px;
+        transform:none;
+        width:calc(100% - 24px);
+        text-align:center;
+        font-size:.82rem;
+        padding:8px 10px;
+    }
+    .safetyMessage{ top:216px; }
+    .warning{ top:258px; }
+    .exerciseGoal{ top:115px; }
+    #trainingProgress{ top:166px; }
+    .statsPanel{ bottom:58px; }
+    .fpsPanel{ right:12px; bottom:12px; padding:8px 10px; }
+    .resetBtn{ right:auto; left:12px; bottom:12px; padding:9px 12px; }
+}
+
+/* 横向きスマートフォンでは左右に情報を分け、カメラ映像を広く保つ。 */
+@media (max-height:600px) and (orientation:landscape){
+    #exercisePanel{ top:8px; left:8px; width:min(42vw, 360px); padding:10px 12px; }
+    #trainingProgress{ top:8px; right:8px; width:min(32vw, 250px); padding:10px 12px; }
+    .exerciseGoal{ top:106px; left:8px; width:min(42vw, 360px); padding:7px 10px; font-size:clamp(.85rem, 2vw, 1.1rem); }
+    .safetyMessage{ top:auto; bottom:56px; left:50%; max-width:48vw; padding:6px 10px; font-size:.75rem; }
+    .warning{ top:62px; max-width:48vw; padding:7px 10px; font-size:.75rem; text-align:center; }
+    .statsPanel{ bottom:8px; left:8px; gap:6px; }
+    .statCard{ width:82px; padding:7px; border-radius:10px; }
+    .statCard .label{ font-size:.7rem; margin-bottom:3px; }
+    .statCard .value{ font-size:1.3rem; }
+    .fpsPanel{ right:8px; bottom:8px; padding:7px 10px; }
+    .resetBtn{ top:auto; bottom:8px; right:110px; transform:none; padding:8px 11px; font-size:.8rem; }
+}

@@ -1,5 +1,8 @@
 const INTRO_COUNTDOWN = 10, MEMORY_TIME = 15, MEMORY_LENGTH = 20;
 const EXERCISE_TIME = 40, TOTAL_EXERCISES = 30, GOAL_REPS = 15, SCORE_THRESHOLD = 0.3;
+// 描画・姿勢推定は端末性能によらず最大30fpsにそろえる。手の推定は十分な判定精度を
+// 保てる12.5fpsに限定し、グーパー運動だけが重くなるのを防ぐ。
+const TARGET_FPS = 30, FRAME_INTERVAL = 1000 / TARGET_FPS, HAND_INTERVAL = 80;
 const $ = (id) => document.getElementById(id);
 const setupScreen = $("setupScreen"), loadingScreen = $("loadingScreen"), countdownScreen = $("countdownScreen");
 const memoryScreen = $("memoryScreen"), answerScreen = $("answerScreen"), beforeMemoryResultScreen = $("beforeMemoryResultScreen");
@@ -27,8 +30,8 @@ let beforeCorrectCount = 0, afterCorrectCount = 0, beforeScore = 0, afterScore =
 let detector = null, handDetector = null, cameraStream = null, running = false;
 let gripCount = 0, highKneeCount = 0, squatCount = 0, jumpCount = 0, calorie = 0, currentExercise = 0, completedExercises = 0, remainExerciseTime = EXERCISE_TIME;
 let squatState = "UP", kneeState = false, jumpCooldown = 0, prevHipY = null;
-let handLandmarks = [], handDetectionPending = false, gripPhase = "closed", gripPhaseEndsAt = 0, gripPhaseValidated = false, gripStableFrames = 0;
-let countdownTimer = null, memoryTimerId = null, trainingTimer = null, animationId = null, fpsFrame = 0, lastFpsTime = performance.now();
+let handLandmarks = [], handDetectionPending = false, lastHandDetectionAt = 0, handResultVersion = 0, processedHandResultVersion = 0, gripPhase = "closed", gripPhaseEndsAt = 0, gripPhaseValidated = false, gripStableFrames = 0;
+let countdownTimer = null, memoryTimerId = null, trainingTimer = null, animationId = null, fpsFrame = 0, lastFpsTime = performance.now(), lastInferenceAt = 0;
 
 function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
 function clearTimers() {
@@ -43,7 +46,7 @@ function resetMemory() {
 function resetTraining() {
     running = false; gripCount = highKneeCount = squatCount = jumpCount = calorie = currentExercise = completedExercises = 0;
     remainExerciseTime = EXERCISE_TIME; squatState = "UP"; kneeState = false; jumpCooldown = 0; prevHipY = null;
-    handLandmarks = []; handDetectionPending = false; gripStableFrames = 0;
+    handLandmarks = []; handDetectionPending = false; lastHandDetectionAt = 0; handResultVersion = processedHandResultVersion = 0; gripStableFrames = 0;
     updateTrainingUI();
 }
 function updateTrainingUI() { sq.textContent = squatCount; jp.textContent = jumpCount; kcal.textContent = calorie.toFixed(1); }
@@ -100,7 +103,15 @@ async function prepareTraining() {
 async function setupCamera() {
     if (cameraStream) return;
     if (!navigator.mediaDevices?.getUserMedia) throw new Error("このブラウザはカメラに対応していません");
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: "user",
+            // 高解像度の入力は推論量を大きく増やすため、運動判定に十分なVGA/30fpsを要求する。
+            width: { ideal: 640, max: 640 }, height: { ideal: 480, max: 480 },
+            frameRate: { ideal: TARGET_FPS, max: TARGET_FPS }
+        },
+        audio: false
+    });
     video.srcObject = cameraStream;
     await new Promise((resolve) => {
         video.onloadedmetadata = async () => {
@@ -120,25 +131,26 @@ async function setupHandDetector() {
     handDetector = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
     handDetector.setOptions({
         maxNumHands: 2,
-        modelComplexity: 1,
+        modelComplexity: 0,
         minDetectionConfidence: 0.75,
         minTrackingConfidence: 0.75,
         selfieMode: true
     });
     handDetector.onResults((results) => {
         handLandmarks = results.multiHandLandmarks || [];
+        handResultVersion += 1;
         handDetectionPending = false;
     });
 }
 function startTraining() {
-    showScreen(trainingScreen); running = true; fpsFrame = 0; lastFpsTime = performance.now(); startExercise();
+    showScreen(trainingScreen); running = true; fpsFrame = 0; lastFpsTime = performance.now(); lastInferenceAt = 0; startExercise();
     animationId = requestAnimationFrame(poseLoop);
 }
 function startExercise() {
     const exercise = exercises[currentExercise]; remainExerciseTime = EXERCISE_TIME; exerciseName.textContent = exercise.name;
     if (exercise.type === "grip") {
         gripPhase = "closed"; gripPhaseEndsAt = performance.now() + 5000;
-        gripPhaseValidated = false; gripStableFrames = 0; updateGripInstruction();
+        gripPhaseValidated = false; gripStableFrames = 0; processedHandResultVersion = handResultVersion; updateGripInstruction();
     }
     updateExerciseGoal();
     progressText.textContent = (completedExercises + 1) + " / " + TOTAL_EXERCISES + " セット";
@@ -167,8 +179,13 @@ function isFullBodyVisible(points) {
 function isGripPoseVisible(points) {
     return [5,6,9,10].every((index) => points[index]?.score >= SCORE_THRESHOLD);
 }
-async function poseLoop() {
+async function poseLoop(now = performance.now()) {
     if (!running) return;
+    if (now - lastInferenceAt < FRAME_INTERVAL) {
+        animationId = requestAnimationFrame(poseLoop);
+        return;
+    }
+    lastInferenceAt = now;
     try {
         const poses = await detector.estimatePoses(video); drawCamera();
         if (exercises[currentExercise]?.type === "grip") requestHandDetection();
@@ -193,7 +210,15 @@ function drawSkeleton(points) {
 }
 function executeExercise(points) {
     switch (exercises[currentExercise].type) {
-        case "grip": detectGrip(); break; case "highKnee": detectHighKnee(points); break;
+        case "grip": {
+            // 同じHands結果を30fpsの姿勢ループで繰り返し数えない。
+            if (handResultVersion !== processedHandResultVersion) {
+                processedHandResultVersion = handResultVersion;
+                detectGrip();
+            }
+            break;
+        }
+        case "highKnee": detectHighKnee(points); break;
         case "squat": detectSquat(points); break; case "jump": detectJump(points); break;
     }
     updateExerciseGoal();
@@ -234,7 +259,9 @@ function detectJump(points) {
     prevHipY = hip.y;
 }
 function requestHandDetection() {
-    if (!handDetector || handDetectionPending) return;
+    const now = performance.now();
+    if (!handDetector || handDetectionPending || now - lastHandDetectionAt < HAND_INTERVAL) return;
+    lastHandDetectionAt = now;
     handDetectionPending = true;
     handDetector.send({ image: video }).catch((error) => {
         console.error("手の検出に失敗しました", error);
@@ -265,7 +292,8 @@ function detectGrip() {
     const expected = gripPhase;
     if (states.every((state) => state === expected)) {
         gripStableFrames += 1;
-        if (gripStableFrames >= 6) gripPhaseValidated = true;
+        // Handsは12.5fpsに間引いているため、約0.24秒の安定検出で確定する。
+        if (gripStableFrames >= 3) gripPhaseValidated = true;
     } else {
         gripStableFrames = 0;
         showWarning(gripPhase === "closed" ? "両手をしっかり握ってください" : "両手の指を大きく開いてください");
