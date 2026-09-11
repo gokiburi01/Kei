@@ -195,7 +195,13 @@ function finishTraining() {
 
 function showWarning(message) { warning.textContent = message; warning.style.display = message ? "block" : "none"; }
 function isFullBodyVisible(points) {
-    return [0,5,6,11,12,13,14,15,16].every((index) => points[index]?.score >= SCORE_THRESHOLD);
+    // 腰(11,12)と膝(13,14)が見えていて、さらに片方の肩(5 or 6)が見えているかを確認する。
+    // 鼻や足首まで厳密に要求すると端末やカメラ角度で誤検出されやすいため緩める。
+    const lowerBody = [11, 12, 13, 14];
+    const shoulders = [5, 6];
+    const hasLower = lowerBody.every((i) => points[i]?.score >= SCORE_THRESHOLD);
+    const hasShoulder = shoulders.some((i) => points[i]?.score >= SCORE_THRESHOLD);
+    return hasLower && hasShoulder;
 }
 function isGripPoseVisible(points) {
     return [5,6,9,10].every((index) => points[index]?.score >= SCORE_THRESHOLD);
@@ -251,7 +257,6 @@ function currentExerciseCount() {
         case "squat": return squatCount;
         case "jump": return jumpCount;
         default: return 0;
-    }
 }
 function updateExerciseGoal() {
     const count = currentExerciseCount();
