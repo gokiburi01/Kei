@@ -13,8 +13,7 @@ const heightInput = $("heightInput"), weightInput = $("weightInput"), genderInpu
 const startBtn = $("startBtn"), loadingText = $("loadingText"), countdownNumber = $("countdownNumber");
 const memoryDigits = $("memoryDigits"), memoryTimer = $("memoryTimer"), memoryAnswerInput = $("memoryAnswerInput");
 const submitAnswerBtn = $("submitAnswer"), giveUpBtn = $("giveUpBtn"), beforeRate = $("beforeRate"), beforeCorrect = $("beforeCorrect");
-const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas");
-const ctx = canvas ? canvas.getContext("2d") : null;
+const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
 const exerciseGoal = $("exerciseGoal");
 const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn"), endTrainingBtn = $("endTrainingBtn");
@@ -43,11 +42,7 @@ let TOTAL_EXERCISES = Math.min(7, FULL_EXERCISES + (LAST_EXERCISE_DURATION > 0 ?
 let elapsedTraining = 0; // 秒単位で経過時間を管理
 let excellentTimer = null;
 
-function showScreen(screen) {
-    // screens 配列の要素が null の場合に例外になるのを防ぐ
-    screens.forEach((item) => { if (item && item.classList) item.classList.add("hidden"); });
-    if (screen && screen.classList) screen.classList.remove("hidden");
-}
+function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
 function clearTimers() {
     clearInterval(countdownTimer); clearInterval(memoryTimerId); clearInterval(trainingTimer);
     countdownTimer = memoryTimerId = trainingTimer = null;
@@ -230,11 +225,9 @@ async function poseLoop(now = performance.now()) {
     if (running) animationId = requestAnimationFrame(poseLoop);
 }
 function drawCamera() {
-    if (!ctx || !canvas) return;
     ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0, canvas.width, canvas.height); ctx.restore();
 }
 function drawSkeleton(points) {
-    if (!ctx || !canvas) return;
     ctx.lineWidth = 4; ctx.strokeStyle = "#00e5ff";
     skeleton.forEach(([a,b]) => {
         const first = points[a], second = points[b];
@@ -400,12 +393,12 @@ function restartApp() {
     beforeRate.textContent = "0"; beforeCorrect.textContent = "0 / " + MEMORY_LENGTH; updateResultUI(); showScreen(setupScreen);
 }
 
-if (startBtn) startBtn.addEventListener("click", startApp);
-if (submitAnswerBtn) submitAnswerBtn.addEventListener("click", () => submitMemory(false));
-if (giveUpBtn) giveUpBtn.addEventListener("click", () => submitMemory(true));
-if (memoryAnswerInput) memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "Enter") submitMemory(false); });
-if (startTrainingBtn) startTrainingBtn.addEventListener("click", prepareTraining);
-if (resetBtn) resetBtn.addEventListener("click", restartApp);
+startBtn.addEventListener("click", startApp);
+submitAnswerBtn.addEventListener("click", () => submitMemory(false));
+giveUpBtn.addEventListener("click", () => submitMemory(true));
+memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "Enter") submitMemory(false); });
+startTrainingBtn.addEventListener("click", prepareTraining);
+resetBtn.addEventListener("click", restartApp);
 // トレーニング中に終了して最後の記憶テストへスキップする
 if (endTrainingBtn) {
     const endHandler = (ev) => {
@@ -419,4 +412,3 @@ if (endTrainingBtn) {
     endTrainingBtn.addEventListener("click", endHandler);
     endTrainingBtn.addEventListener("pointerdown", endHandler);
 }
-if (restartBtn) restartBtn.addEventListener("click", startApp);
