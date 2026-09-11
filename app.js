@@ -15,7 +15,7 @@ const submitAnswerBtn = $("submitAnswer"), giveUpBtn = $("giveUpBtn"), beforeRat
 const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
 const exerciseGoal = $("exerciseGoal");
-const kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn");
+const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn");
 const beforeCorrectResult = $("beforeCorrectResult"), beforeRateResult = $("beforeRateResult");
 const afterCorrectResult = $("afterCorrectResult"), afterRateResult = $("afterRateResult"), improveRate = $("improveRate");
 const resultSquat = $("resultSquat"), resultJump = $("resultJump"), resultKcal = $("resultKcal"), restartBtn = $("restartBtn");
@@ -49,7 +49,7 @@ function resetTraining() {
     handLandmarks = []; handDetectionPending = false; lastHandDetectionAt = 0; handResultVersion = processedHandResultVersion = 0; gripStableFrames = 0;
     updateTrainingUI();
 }
-function updateTrainingUI() { kcal.textContent = calorie.toFixed(1); }
+function updateTrainingUI() { sq.textContent = squatCount; jp.textContent = jumpCount; kcal.textContent = calorie.toFixed(1); }
 function updateResultUI() {
     beforeCorrectResult.textContent = beforeCorrectCount + " / " + MEMORY_LENGTH;
     beforeRateResult.textContent = beforeScore + "%"; afterCorrectResult.textContent = afterCorrectCount + " / " + MEMORY_LENGTH;
@@ -173,6 +173,9 @@ function finishTraining() {
 }
 
 function showWarning(message) { warning.textContent = message; warning.style.display = message ? "block" : "none"; }
+function isFullBodyVisible(points) {
+    return [0,5,6,11,12,13,14,15,16].every((index) => points[index]?.score >= SCORE_THRESHOLD);
+}
 function isGripPoseVisible(points) {
     return [5,6,9,10].every((index) => points[index]?.score >= SCORE_THRESHOLD);
 }
@@ -186,9 +189,9 @@ async function poseLoop(now = performance.now()) {
     try {
         const poses = await detector.estimatePoses(video); drawCamera();
         if (exercises[currentExercise]?.type === "grip") requestHandDetection();
-        // 人物未検出・全身が入っていない場合はメッセージを表示せず、映像だけを維持する。
-        if (!poses.length) showWarning("");
+        if (!poses.length) showWarning("人物を検出できません");
         else if (exercises[currentExercise]?.type === "grip" && !isGripPoseVisible(poses[0].keypoints)) showWarning("両手を肩の前でカメラに向けてください");
+        else if (!isFullBodyVisible(poses[0].keypoints)) showWarning("全身が画面に入る位置へ移動してください");
         else { showWarning(""); drawSkeleton(poses[0].keypoints); executeExercise(poses[0].keypoints); }
         updateTrainingUI(); updateFPS();
     } catch (error) { console.error("姿勢推定に失敗しました", error); }
@@ -337,6 +340,3 @@ giveUpBtn.addEventListener("click", () => submitMemory(true));
 memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "Enter") submitMemory(false); });
 startTrainingBtn.addEventListener("click", prepareTraining);
 resetBtn.addEventListener("click", restartApp);
-restartBtn.addEventListener("click", restartApp);
-window.addEventListener("beforeunload", stopCamera);
-resetMemory(); resetTraining(); updateResultUI(); showScreen(setupScreen);
