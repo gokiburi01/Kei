@@ -1,5 +1,6 @@
 const INTRO_COUNTDOWN = 10, MEMORY_TIME = 15, MEMORY_LENGTH = 20;
-const EXERCISE_TIME = 40, TOTAL_EXERCISES = 30, GOAL_REPS = 15, SCORE_THRESHOLD = 0.3;
+// 各運動は40秒のままにし、合計トレーニング時間を5分(300秒)に調整する
+const EXERCISE_TIME = 40, TOTAL_TRAINING_TIME = 300, GOAL_REPS = 15, SCORE_THRESHOLD = 0.3;
 // 描画・姿勢推定は端末性能によらず最大30fpsにそろえる。手の推定は十分な判定精度を
 // 保てる12.5fpsに限定し、グーパー運動だけが重くなるのを防ぐ。
 const TARGET_FPS = 30, FRAME_INTERVAL = 1000 / TARGET_FPS, HAND_INTERVAL = 80;
@@ -15,7 +16,7 @@ const submitAnswerBtn = $("submitAnswer"), giveUpBtn = $("giveUpBtn"), beforeRat
 const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
 const exerciseGoal = $("exerciseGoal");
-const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn");
+const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn"), endTrainingBtn = $("endTrainingBtn");
 const beforeCorrectResult = $("beforeCorrectResult"), beforeRateResult = $("beforeRateResult");
 const afterCorrectResult = $("afterCorrectResult"), afterRateResult = $("afterRateResult"), improveRate = $("improveRate");
 const resultSquat = $("resultSquat"), resultJump = $("resultJump"), resultKcal = $("resultKcal"), restartBtn = $("restartBtn");
@@ -32,6 +33,11 @@ let gripCount = 0, highKneeCount = 0, squatCount = 0, jumpCount = 0, calorie = 0
 let squatState = "UP", kneeState = false, jumpCooldown = 0, prevHipY = null;
 let handLandmarks = [], handDetectionPending = false, lastHandDetectionAt = 0, handResultVersion = 0, processedHandResultVersion = 0, gripPhase = "closed", gripPhaseEndsAt = 0, gripPhaseValidated = false, gripStableFrames = 0;
 let countdownTimer = null, memoryTimerId = null, trainingTimer = null, animationId = null, fpsFrame = 0, lastFpsTime = performance.now(), lastInferenceAt = 0;
+// トレーニング時間管理
+const FULL_EXERCISES = Math.floor(TOTAL_TRAINING_TIME / EXERCISE_TIME);
+const LAST_EXERCISE_DURATION = TOTAL_TRAINING_TIME - FULL_EXERCISES * EXERCISE_TIME; // 余り秒数（0なら無し）
+let TOTAL_EXERCISES = FULL_EXERCISES + (LAST_EXERCISE_DURATION > 0 ? 1 : 0);
+let elapsedTraining = 0; // 秒単位で経過時間を管理
 
 function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
 function clearTimers() {
@@ -47,6 +53,7 @@ function resetTraining() {
     running = false; gripCount = highKneeCount = squatCount = jumpCount = calorie = currentExercise = completedExercises = 0;
     remainExerciseTime = EXERCISE_TIME; squatState = "UP"; kneeState = false; jumpCooldown = 0; prevHipY = null;
     handLandmarks = []; handDetectionPending = false; lastHandDetectionAt = 0; handResultVersion = processedHandResultVersion = 0; gripStableFrames = 0;
+    elapsedTraining = 0;
     updateTrainingUI();
 }
 function updateTrainingUI() { sq.textContent = squatCount; jp.textContent = jumpCount; kcal.textContent = calorie.toFixed(1); }
@@ -148,6 +155,10 @@ function startTraining() {
 }
 function startExercise() {
     const exercise = exercises[currentExercise]; remainExerciseTime = EXERCISE_TIME; exerciseName.textContent = exercise.name;
+    // 各セットの秒数は基本40秒。ただし合計でちょうどTOTAL_TRAINING_TIMEになるよう
+    // 最後のセットは余り秒数（LAST_EXERCISE_DURATION）があればそれを使う。
+    const lastDur = LAST_EXERCISE_DURATION || EXERCISE_TIME;
+    remainExerciseTime = (currentExercise < FULL_EXERCISES) ? EXERCISE_TIME : lastDur;
     if (exercise.type === "grip") {
         gripPhase = "closed"; gripPhaseEndsAt = performance.now() + 5000;
         gripPhaseValidated = false; gripStableFrames = 0; processedHandResultVersion = handResultVersion; updateGripInstruction();
@@ -157,9 +168,14 @@ function startExercise() {
     if (exercise.type !== "grip") exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒";
     clearInterval(trainingTimer);
     trainingTimer = setInterval(() => {
+        // 1秒経過
         remainExerciseTime -= 1;
+        elapsedTraining += 1;
+        // グーパーは独自ロジックで更新
         if (exercise.type === "grip") updateGripPhase(performance.now());
         else exerciseTarget.textContent = "残り " + remainExerciseTime + " 秒";
+        // 総合時間に到達したら終了（できるだけ正確に）
+        if (elapsedTraining >= TOTAL_TRAINING_TIME) { finishTraining(); return; }
         if (remainExerciseTime <= 0) nextExercise();
     }, 1000);
 }
@@ -340,3 +356,8 @@ giveUpBtn.addEventListener("click", () => submitMemory(true));
 memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "Enter") submitMemory(false); });
 startTrainingBtn.addEventListener("click", prepareTraining);
 resetBtn.addEventListener("click", restartApp);
+// トレーニング中に終了して最後の記憶テストへスキップする
+endTrainingBtn?.addEventListener("click", () => {
+    if (!running) return;
+    finishTraining();
+});
