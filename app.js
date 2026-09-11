@@ -270,7 +270,7 @@ function detectSquat(points) {
     if (![hip,knee,ankle].every((point) => point.score >= SCORE_THRESHOLD)) return;
     const angle = getAngle(hip,knee,ankle);
     if (squatState === "UP" && angle < 100) squatState = "DOWN";
-    if (squatState === "DOWN" && angle > 160) { squatState = "UP"; squatCount += 1; calorie += 0.32; }
+    if (squatState === "DOWN" && angle > 160) { squatState = "UP"; squatCount += 1; calorie += 0.32; showExcellent(); }
 }
 function detectJump(points) {
     const hip = points[11]; if (hip.score < SCORE_THRESHOLD) return;
@@ -320,25 +320,37 @@ function handGesture(landmarks) {
     const angles = fingers.map(([base, joint, tip]) => getAngle(landmarks[base], landmarks[joint], landmarks[tip]));
     const bentFingers = angles.filter((angle) => angle < 125).length;
     const straightFingers = angles.filter((angle) => angle > 150).length;
-    if (tipDistance < 1.45 && bentFingers >= 3) return "closed";
-    if (tipDistance > 1.9 && straightFingers >= 3) return "open";
+    // 閾値をやや緩めて検出を改善（誤検知を防ぐため最低条件は維持）
+    if (tipDistance < 1.6 && bentFingers >= 2) return "closed";
+    if (tipDistance > 1.8 && straightFingers >= 2) return "open";
     return "unknown";
 }
 function detectGrip() {
-    if (handLandmarks.length !== 2) {
+    if (handLandmarks.length === 0) {
         gripStableFrames = 0;
-        showWarning("両手を前に出し、手のひらをカメラに向けてください");
+        showWarning("手が映っていません。カメラの前で両手を前に出してください");
         return;
     }
     const states = handLandmarks.map(handGesture);
     const expected = gripPhase;
-    if (states.every((state) => state === expected)) {
-        gripStableFrames += 1;
-        // Handsは12.5fpsに間引いているため、約0.24秒の安定検出で確定する。
-        if (gripStableFrames >= 3) gripPhaseValidated = true;
+    // 2手検出時は両手が期待動作であることを要求。片手しか見えない場合は安定フレーム数を長めにして判定。
+    if (handLandmarks.length >= 2) {
+        if (states.every((state) => state === expected)) {
+            gripStableFrames += 1;
+            if (gripStableFrames >= 3) gripPhaseValidated = true;
+        } else {
+            gripStableFrames = 0;
+            showWarning(gripPhase === "closed" ? "両手をしっかり握ってください" : "両手の指を大きく開いてください");
+        }
     } else {
-        gripStableFrames = 0;
-        showWarning(gripPhase === "closed" ? "両手をしっかり握ってください" : "両手の指を大きく開いてください");
+        // 片手しか映らない場合は安定判定をより厳密に（約0.4〜0.5秒）
+        if (states[0] === expected) {
+            gripStableFrames += 1;
+            if (gripStableFrames >= 5) gripPhaseValidated = true;
+        } else {
+            gripStableFrames = 0;
+            showWarning(gripPhase === "closed" ? "手をしっかり握ってください" : "指を大きく開いてください");
+        }
     }
 }
 function updateGripInstruction() {
@@ -350,7 +362,7 @@ function updateGripInstruction() {
 function updateGripPhase(now) {
     if (exercises[currentExercise]?.type !== "grip") return;
     while (now >= gripPhaseEndsAt) {
-        if (gripPhase === "open" && gripPhaseValidated) { gripCount += 1; calorie += 0.02; }
+        if (gripPhase === "open" && gripPhaseValidated) { gripCount += 1; calorie += 0.02; showExcellent(); }
         gripPhase = gripPhase === "closed" ? "open" : "closed";
         gripPhaseEndsAt += 5000;
         gripPhaseValidated = false; gripStableFrames = 0;
@@ -361,7 +373,7 @@ function updateGripPhase(now) {
 function detectHighKnee(points) {
     const [hip,knee] = [points[11],points[13]];
     if (![hip,knee].every((point) => point.score >= SCORE_THRESHOLD)) return;
-    if (knee.y < hip.y && !kneeState) { kneeState = true; highKneeCount += 1; calorie += 0.05; }
+    if (knee.y < hip.y && !kneeState) { kneeState = true; highKneeCount += 1; calorie += 0.05; showExcellent(); }
     if (knee.y > hip.y) kneeState = false;
 }
 function updateFPS() {
