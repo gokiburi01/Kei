@@ -822,6 +822,24 @@ FPS表示
     z-index:100;
 }
 
+/* EXCELLENT バッジ（腹部に短時間表示） */
+.excellentBadge{
+    position:absolute;
+    left:50%;
+    top:55%;
+    transform:translate(-50%,-50%);
+    background:rgba(20,120,40,0.9);
+    color:#fff;
+    padding:12px 20px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:1.8rem;
+    letter-spacing:.08em;
+    z-index:250;
+    pointer-events:none;
+    text-shadow:0 2px 8px rgba(0,0,0,0.35);
+}
+
 /*==========================================================
 結果画面
 ==========================================================*/
