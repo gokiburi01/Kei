@@ -1,4 +1,5 @@
 const INTRO_COUNTDOWN = 10, MEMORY_TIME = 15, MEMORY_LENGTH = 20;
+try { console.log("app.js loaded"); } catch (e) {}
 // 各運動は40秒のままにし、合計トレーニング時間を5分(300秒)に調整する
 const EXERCISE_TIME = 40, TOTAL_TRAINING_TIME = 300, GOAL_REPS = 15, SCORE_THRESHOLD = 0.3;
 // 描画・姿勢推定は端末性能によらず最大30fpsにそろえる。手の推定は十分な判定精度を
@@ -13,7 +14,8 @@ const heightInput = $("heightInput"), weightInput = $("weightInput"), genderInpu
 const startBtn = $("startBtn"), loadingText = $("loadingText"), countdownNumber = $("countdownNumber");
 const memoryDigits = $("memoryDigits"), memoryTimer = $("memoryTimer"), memoryAnswerInput = $("memoryAnswerInput");
 const submitAnswerBtn = $("submitAnswer"), giveUpBtn = $("giveUpBtn"), beforeRate = $("beforeRate"), beforeCorrect = $("beforeCorrect");
-const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas"), ctx = canvas.getContext("2d");
+const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("canvas");
+const ctx = canvas ? canvas.getContext("2d") : null;
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
 const exerciseGoal = $("exerciseGoal");
 const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn"), endTrainingBtn = $("endTrainingBtn");
@@ -42,7 +44,11 @@ let TOTAL_EXERCISES = Math.min(7, FULL_EXERCISES + (LAST_EXERCISE_DURATION > 0 ?
 let elapsedTraining = 0; // 秒単位で経過時間を管理
 let excellentTimer = null;
 
-function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
+function showScreen(screen) {
+    // screens 配列の要素が null の場合に例外になるのを防ぐ
+    screens.forEach((item) => { if (item && item.classList) item.classList.add("hidden"); });
+    if (screen && screen.classList) screen.classList.remove("hidden");
+}
 function clearTimers() {
     clearInterval(countdownTimer); clearInterval(memoryTimerId); clearInterval(trainingTimer);
     countdownTimer = memoryTimerId = trainingTimer = null;
@@ -74,6 +80,7 @@ function countCorrect(answer, correct) {
 }
 
 function startApp() { clearTimers(); resetMemory(); resetTraining(); randomDigits = generateDigits(); startCountdown(); }
+function startAppWrapped() { try { console.log('startApp invoked'); startApp(); } catch (e) { console.error('startApp error', e); throw e; } }
 function startCountdown() {
     showScreen(countdownScreen); let seconds = INTRO_COUNTDOWN; countdownNumber.textContent = seconds;
     countdownTimer = setInterval(() => {
@@ -195,7 +202,13 @@ function finishTraining() {
 
 function showWarning(message) { warning.textContent = message; warning.style.display = message ? "block" : "none"; }
 function isFullBodyVisible(points) {
-    return [0,5,6,11,12,13,14,15,16].every((index) => points[index]?.score >= SCORE_THRESHOLD);
+    // 腰(11,12)と膝(13,14)が見えていて、さらに片方の肩(5 or 6)が見えているかを確認する。
+    // 鼻や足首まで厳密に要求すると端末やカメラ角度で誤検出されやすいため緩める。
+    const lowerBody = [11, 12, 13, 14];
+    const shoulders = [5, 6];
+    const hasLower = lowerBody.every((i) => points[i]?.score >= SCORE_THRESHOLD);
+    const hasShoulder = shoulders.some((i) => points[i]?.score >= SCORE_THRESHOLD);
+    return hasLower && hasShoulder;
 }
 function isGripPoseVisible(points) {
     return [5,6,9,10].every((index) => points[index]?.score >= SCORE_THRESHOLD);
@@ -219,9 +232,11 @@ async function poseLoop(now = performance.now()) {
     if (running) animationId = requestAnimationFrame(poseLoop);
 }
 function drawCamera() {
+    if (!ctx || !canvas) return;
     ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0, canvas.width, canvas.height); ctx.restore();
 }
 function drawSkeleton(points) {
+    if (!ctx || !canvas) return;
     ctx.lineWidth = 4; ctx.strokeStyle = "#00e5ff";
     skeleton.forEach(([a,b]) => {
         const first = points[a], second = points[b];
@@ -251,7 +266,6 @@ function currentExerciseCount() {
         case "squat": return squatCount;
         case "jump": return jumpCount;
         default: return 0;
-    }
 }
 function updateExerciseGoal() {
     const count = currentExerciseCount();
@@ -388,12 +402,14 @@ function restartApp() {
     beforeRate.textContent = "0"; beforeCorrect.textContent = "0 / " + MEMORY_LENGTH; updateResultUI(); showScreen(setupScreen);
 }
 
-startBtn.addEventListener("click", startApp);
-submitAnswerBtn.addEventListener("click", () => submitMemory(false));
-giveUpBtn.addEventListener("click", () => submitMemory(true));
-memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "Enter") submitMemory(false); });
-startTrainingBtn.addEventListener("click", prepareTraining);
-resetBtn.addEventListener("click", restartApp);
+if (startBtn) {
+    try { startBtn.addEventListener("click", startAppWrapped); console.log('startBtn listener attached'); } catch (e) { console.error('failed attach startBtn', e); }
+} else { try { console.warn('startBtn not found'); } catch (e) {} }
+if (submitAnswerBtn) { try { submitAnswerBtn.addEventListener("click", () => submitMemory(false)); } catch (e) { console.error('attach submitAnswerBtn failed', e); } }
+if (giveUpBtn) { try { giveUpBtn.addEventListener("click", () => submitMemory(true)); } catch (e) { console.error('attach giveUpBtn failed', e); } }
+if (memoryAnswerInput) { try { memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "Enter") submitMemory(false); }); } catch (e) { console.error('attach memoryAnswerInput failed', e); } }
+if (startTrainingBtn) { try { startTrainingBtn.addEventListener("click", prepareTraining); } catch (e) { console.error('attach startTrainingBtn failed', e); } }
+if (resetBtn) { try { resetBtn.addEventListener("click", restartApp); } catch (e) { console.error('attach resetBtn failed', e); } }
 // トレーニング中に終了して最後の記憶テストへスキップする
 if (endTrainingBtn) {
     const endHandler = (ev) => {
@@ -407,3 +423,4 @@ if (endTrainingBtn) {
     endTrainingBtn.addEventListener("click", endHandler);
     endTrainingBtn.addEventListener("pointerdown", endHandler);
 }
+if (restartBtn) restartBtn.addEventListener("click", startApp);
