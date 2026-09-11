@@ -245,13 +245,36 @@ function executeExercise(points) {
 }
 function currentExerciseCount() {
     switch (exercises[currentExercise].type) {
-        case "grip": return gripCount;
-        case "highKnee": return highKneeCount;
-        case "squat": return squatCount;
-        case "jump": return jumpCount;
-        default: return 0;
+        case "grip":
+            return gripCount;
+
+        case "highKnee":
+            return highKneeCount;
+
+        case "squat":
+            return squatCount;
+
+        case "jump":
+            return jumpCount;
+
+        default:
+            return 0;
+    }
 }
+
 function updateExerciseGoal() {
+    const count = currentExerciseCount();
+
+    exerciseGoal.textContent =
+        count >= GOAL_REPS
+            ? "クリア！ " + count + "回　そのまま続けてもよいです"
+            : "目標 " + GOAL_REPS + "回　現在 " + count + "回";
+
+    exerciseGoal.classList.toggle(
+        "isCleared",
+        count >= GOAL_REPS
+    );
+}
     const count = currentExerciseCount();
     exerciseGoal.textContent = count >= GOAL_REPS
         ? "クリア！ " + count + "回　そのまま続けてもよいです"
