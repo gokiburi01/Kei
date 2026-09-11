@@ -36,7 +36,8 @@ let countdownTimer = null, memoryTimerId = null, trainingTimer = null, animation
 // トレーニング時間管理
 const FULL_EXERCISES = Math.floor(TOTAL_TRAINING_TIME / EXERCISE_TIME);
 const LAST_EXERCISE_DURATION = TOTAL_TRAINING_TIME - FULL_EXERCISES * EXERCISE_TIME; // 余り秒数（0なら無し）
-let TOTAL_EXERCISES = FULL_EXERCISES + (LAST_EXERCISE_DURATION > 0 ? 1 : 0);
+// 上限を7セットに制限（ユーザーの指定）
+let TOTAL_EXERCISES = Math.min(7, FULL_EXERCISES + (LAST_EXERCISE_DURATION > 0 ? 1 : 0));
 let elapsedTraining = 0; // 秒単位で経過時間を管理
 
 function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
@@ -54,6 +55,8 @@ function resetTraining() {
     remainExerciseTime = EXERCISE_TIME; squatState = "UP"; kneeState = false; jumpCooldown = 0; prevHipY = null;
     handLandmarks = []; handDetectionPending = false; lastHandDetectionAt = 0; handResultVersion = processedHandResultVersion = 0; gripStableFrames = 0;
     elapsedTraining = 0;
+    // 終了ボタンを再有効化（前回の無効化が残らないように）
+    try { if (endTrainingBtn) { endTrainingBtn.disabled = false; endTrainingBtn.style.opacity = "1"; } } catch (e) {}
     updateTrainingUI();
 }
 function updateTrainingUI() { sq.textContent = squatCount; jp.textContent = jumpCount; kcal.textContent = calorie.toFixed(1); }
@@ -357,7 +360,15 @@ memoryAnswerInput.addEventListener("keydown", (event) => { if (event.key === "En
 startTrainingBtn.addEventListener("click", prepareTraining);
 resetBtn.addEventListener("click", restartApp);
 // トレーニング中に終了して最後の記憶テストへスキップする
-endTrainingBtn?.addEventListener("click", () => {
-    if (!running) return;
-    finishTraining();
-});
+if (endTrainingBtn) {
+    const endHandler = (ev) => {
+        ev.preventDefault();
+        if (!running) return;
+        // 二重押下を防ぐ
+        endTrainingBtn.disabled = true;
+        endTrainingBtn.style.opacity = "0.7";
+        finishTraining();
+    };
+    endTrainingBtn.addEventListener("click", endHandler);
+    endTrainingBtn.addEventListener("pointerdown", endHandler);
+}
