@@ -17,6 +17,7 @@ const startTrainingBtn = $("startTrainingBtn"), video = $("video"), canvas = $("
 const warning = $("warning"), exerciseName = $("exerciseName"), exerciseTarget = $("exerciseTarget"), progressText = $("progressText");
 const exerciseGoal = $("exerciseGoal");
 const sq = $("sq"), jp = $("jp"), kcal = $("kcal"), fpsValue = $("fpsValue"), resetBtn = $("resetBtn"), endTrainingBtn = $("endTrainingBtn");
+const excellentBadge = $("excellentBadge");
 const beforeCorrectResult = $("beforeCorrectResult"), beforeRateResult = $("beforeRateResult");
 const afterCorrectResult = $("afterCorrectResult"), afterRateResult = $("afterRateResult"), improveRate = $("improveRate");
 const resultSquat = $("resultSquat"), resultJump = $("resultJump"), resultKcal = $("resultKcal"), restartBtn = $("restartBtn");
@@ -39,6 +40,7 @@ const LAST_EXERCISE_DURATION = TOTAL_TRAINING_TIME - FULL_EXERCISES * EXERCISE_T
 // 上限を7セットに制限（ユーザーの指定）
 let TOTAL_EXERCISES = Math.min(7, FULL_EXERCISES + (LAST_EXERCISE_DURATION > 0 ? 1 : 0));
 let elapsedTraining = 0; // 秒単位で経過時間を管理
+let excellentTimer = null;
 
 function showScreen(screen) { screens.forEach((item) => item.classList.add("hidden")); screen.classList.remove("hidden"); }
 function clearTimers() {
@@ -272,10 +274,31 @@ function detectSquat(points) {
 }
 function detectJump(points) {
     const hip = points[11]; if (hip.score < SCORE_THRESHOLD) return;
+    // 肩と腰の差から胴体高さを推定し、閾値を体格に応じて決定する
+    const sL = points[5], sR = points[6];
+    let torso = 100;
+    if ((sL?.score ?? 0) > 0 || (sR?.score ?? 0) > 0) {
+        const shoulderY = ((sL?.y || 0) + (sR?.y || 0)) / ((sL?.y ? 1 : 0) + (sR?.y ? 1 : 0) || 1);
+        torso = Math.abs(shoulderY - hip.y) || torso;
+    }
+    const threshold = Math.max(20, torso * 0.12); // 胴体高さの12% または 20px の大きい方
+
     if (prevHipY === null) { prevHipY = hip.y; return; }
     if (jumpCooldown > 0) { jumpCooldown -= 1; prevHipY = hip.y; return; }
-    if (prevHipY - hip.y > 35) { jumpCount += 1; calorie += 0.45; jumpCooldown = 15; }
+    // 上方向への急激な移動を検出（画面Yは上が小さい）
+    if (prevHipY - hip.y > threshold) {
+        jumpCount += 1; calorie += 0.45;
+        jumpCooldown = Math.round(TARGET_FPS * 0.5); // 約0.5秒のクールダウン
+        showExcellent();
+    }
     prevHipY = hip.y;
+}
+
+function showExcellent() {
+    if (!excellentBadge) return;
+    try { clearTimeout(excellentTimer); } catch (e) {}
+    excellentBadge.style.display = "block";
+    excellentTimer = setTimeout(() => { excellentBadge.style.display = "none"; excellentTimer = null; }, 1500);
 }
 function requestHandDetection() {
     const now = performance.now();
