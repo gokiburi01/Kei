@@ -275,12 +275,8 @@ function updateExerciseGoal() {
         count >= GOAL_REPS
     );
 }
-    const count = currentExerciseCount();
-    exerciseGoal.textContent = count >= GOAL_REPS
-        ? "クリア！ " + count + "回　そのまま続けてもよいです"
-        : "目標 " + GOAL_REPS + "回　現在 " + count + "回";
-    exerciseGoal.classList.toggle("isCleared", count >= GOAL_REPS);
-}
+    
+
 function getAngle(a, b, c) {
     const ab = { x: a.x - b.x, y: a.y - b.y }, cb = { x: c.x - b.x, y: c.y - b.y };
     const size = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
